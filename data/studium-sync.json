@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": 1795060776744,
+  "updatedAt": 1795060779925,
   "reason": "state-update",
   "data": {
     "subjects": [
@@ -80998,22 +80998,19 @@
     ],
     "selectedSubjectId": "subj-1794740163933",
     "selectedChapterId": "chap-1794740180850",
-    "hubSubjectId": "subj-1794740163933",
+    "hubSubjectId": "subj-1794760898822",
     "hubSelectedChapterIds": [
-      "chap-1794740180850",
-      "chap-1794740191883",
-      "chap-1794740198733",
-      "chap-1794740211749",
-      "chap-1794740229166",
-      "chap-1794740242083",
-      "chap-1794740949631",
-      "chap-1794740970998",
-      "chap-1794740987147",
-      "chap-1794740994647",
-      "chap-1794741895178"
+      "chap-1795009339157",
+      "chap-1795009348054",
+      "chap-1795009357722",
+      "chap-1795009365655",
+      "chap-1795009372506",
+      "chap-1795009381772",
+      "chap-1795009390903",
+      "chap-1795009399237"
     ],
     "hubFilter": "all",
     "hubQuizMode": "mcq",
-    "hubQuestionCount": 592
+    "hubQuestionCount": 1361
   }
 }
