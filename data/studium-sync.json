@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": 1795061577568,
+  "updatedAt": 1795061593335,
   "reason": "state-update",
   "data": {
     "subjects": [
@@ -80994,10 +80994,21 @@
             "questions": []
           }
         ]
+      },
+      {
+        "id": "subj-1795061588631",
+        "name": "test",
+        "chapters": [
+          {
+            "id": "chap-1795061588631",
+            "title": "Chapter 1",
+            "questions": []
+          }
+        ]
       }
     ],
-    "selectedSubjectId": "subj-1794740163933",
-    "selectedChapterId": "chap-1794740180850",
+    "selectedSubjectId": "subj-1795061588631",
+    "selectedChapterId": "chap-1795061588631",
     "hubSubjectId": "subj-1794740163933",
     "hubSelectedChapterIds": [
       "chap-1794740180850",
