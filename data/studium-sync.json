@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": 1795061162478,
+  "updatedAt": 1795061167133,
   "reason": "state-update",
   "data": {
     "subjects": [
@@ -11624,13 +11624,13 @@
                 ],
                 "explanation": "",
                 "shown": true,
-                "seenCount": 2,
-                "attempts": 2,
+                "seenCount": 3,
+                "attempts": 3,
                 "correctCount": 2,
-                "wrongCount": 0,
-                "missedCount": 0,
-                "status": "mastered",
-                "result": "correct",
+                "wrongCount": 1,
+                "missedCount": 1,
+                "status": "learning",
+                "result": "missed",
                 "flagged": false
               },
               {
