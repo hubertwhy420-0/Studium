@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": 1795060871840,
+  "updatedAt": 1795060874468,
   "reason": "state-update",
   "data": {
     "subjects": [
@@ -31,15 +31,15 @@
                   "Enolase"
                 ],
                 "explanation": "PFK-1 converts fructose-6-phosphate to fructose-1,6-bisphosphate and is allosterically inhibited by ATP and citrate.",
-                "shown": false,
-                "seenCount": 0,
-                "attempts": 0,
+                "shown": true,
+                "seenCount": 1,
+                "attempts": 1,
                 "correctCount": 0,
-                "wrongCount": 0,
-                "missedCount": 0,
-                "status": "new",
-                "result": null,
-                "flagged": true
+                "wrongCount": 1,
+                "missedCount": 1,
+                "status": "missed",
+                "result": "missed",
+                "flagged": false
               },
               {
                 "id": "q-102",
