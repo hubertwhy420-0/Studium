@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": 1795060874468,
+  "updatedAt": 1795060886772,
   "reason": "state-update",
   "data": {
     "subjects": [
@@ -32,14 +32,14 @@
                 ],
                 "explanation": "PFK-1 converts fructose-6-phosphate to fructose-1,6-bisphosphate and is allosterically inhibited by ATP and citrate.",
                 "shown": true,
-                "seenCount": 1,
-                "attempts": 1,
+                "seenCount": 4,
+                "attempts": 4,
                 "correctCount": 0,
-                "wrongCount": 1,
-                "missedCount": 1,
+                "wrongCount": 4,
+                "missedCount": 4,
                 "status": "missed",
                 "result": "missed",
-                "flagged": false
+                "flagged": true
               },
               {
                 "id": "q-102",
