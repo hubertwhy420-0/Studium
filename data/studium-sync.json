@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": 1795435111478,
+  "updatedAt": 1795439512732,
   "reason": "manual",
   "data": {
     "subjects": [
@@ -80968,7 +80968,7 @@
       }
     ],
     "selectedSubjectId": "subj-1794740163933",
-    "selectedChapterId": "chap-1795009339157",
+    "selectedChapterId": "chap-1794740180850",
     "hubSubjectId": "subj-1794760918006",
     "hubSelectedChapterIds": [
       "chap-1795009413271",
@@ -80980,8 +80980,8 @@
       "chap-1795009458404",
       "chap-1795009470236"
     ],
-    "hubFilter": "not_shown",
+    "hubFilter": "all",
     "hubQuizMode": "mcq",
-    "hubQuestionCount": 357
+    "hubQuestionCount": 456
   }
 }
