@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": 1795255212573,
+  "updatedAt": 1795407182274,
   "reason": "manual",
   "data": {
     "subjects": [
@@ -80973,8 +80973,8 @@
     "hubSelectedChapterIds": [
       "chap-1795009424920"
     ],
-    "hubFilter": "not_shown",
+    "hubFilter": "all",
     "hubQuizMode": "mcq",
-    "hubQuestionCount": 0
+    "hubQuestionCount": 48
   }
 }
