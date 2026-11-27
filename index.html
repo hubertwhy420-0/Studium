@@ -2187,11 +2187,14 @@ Generate a balanced mix of basic foundational recall and higher-order, concept-c
                     return;
                 }
 
+                const rawText = await res.text();
                 if (!res.ok) throw new Error(`GitHub API ${res.status}`);
+                if (!rawText.trim()) throw new Error('Empty response from GitHub');
 
-                const data = await res.json();
+                const data = JSON.parse(rawText);
                 githubFileSha = data.sha;
-                const decoded = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
+                const decoded = decodeURIComponent(escape(atob((data.content || '').replace(/\n/g, ''))));
+                if (!decoded.trim()) throw new Error('Remote sync file is empty');
                 const remoteState = normalizeState(JSON.parse(decoded));
 
                 if ((remoteState.updatedAt || 0) >= (appState.updatedAt || 0)) {
@@ -2222,8 +2225,11 @@ Generate a balanced mix of basic foundational recall and higher-order, concept-c
                         }
                     });
                     if (checkRes.ok) {
-                        const meta = await checkRes.json();
-                        githubFileSha = meta.sha;
+                        const checkText = await checkRes.text();
+                        if (checkText.trim()) {
+                            const meta = JSON.parse(checkText);
+                            githubFileSha = meta.sha;
+                        }
                     }
                 }
 
@@ -2244,9 +2250,12 @@ Generate a balanced mix of basic foundational recall and higher-order, concept-c
                     body: JSON.stringify(body)
                 });
 
+                const putText = await putRes.text();
                 if (!putRes.ok) throw new Error(`GitHub API ${putRes.status}`);
-                const result = await putRes.json();
-                githubFileSha = result.content?.sha || githubFileSha;
+                if (putText.trim()) {
+                    const result = JSON.parse(putText);
+                    githubFileSha = result.content?.sha || githubFileSha;
+                }
 
                 updateGitHubStatusIndicator(`Last pushed at ${new Date().toLocaleTimeString()}`, true);
                 if (!silent) showToast('Saved to GitHub!', 'success');
