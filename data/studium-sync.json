@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": 1795619231860,
+  "updatedAt": 1795743739874,
   "reason": "manual",
   "data": {
     "subjects": [
@@ -80968,7 +80968,7 @@
       }
     ],
     "selectedSubjectId": "subj-1794760898822",
-    "selectedChapterId": "chap-1794740180850",
+    "selectedChapterId": "chap-1795009339157",
     "hubSubjectId": "subj-1794760898822",
     "hubSelectedChapterIds": [
       "chap-1795009339157",
