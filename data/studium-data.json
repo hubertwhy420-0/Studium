@@ -1,0 +1,75 @@
+{
+  "updatedAt": 1795769926245,
+  "customLogo": "",
+  "hubSubjectId": "sub_default_1",
+  "hubSelectedChapterIds": [
+    "ch_default_1"
+  ],
+  "hubFilter": "all",
+  "hubQuizMode": "mcq",
+  "hubQuestionCount": 3,
+  "subjectsViewSubjectId": "sub_default_1",
+  "settings": {
+    "missedToLearning": 1,
+    "learningToMastered": 1
+  },
+  "subjects": [
+    {
+      "id": "sub_default_1",
+      "name": "Cell Biology",
+      "chapters": [
+        {
+          "id": "ch_default_1",
+          "name": "Cellular Organelles & Bioenergetics",
+          "questions": [
+            {
+              "id": "q_seed_1",
+              "prompt": "Which organelle is primarily responsible for generating ATP via oxidative phosphorylation?",
+              "correctAnswer": "Mitochondrion",
+              "choices": [
+                "Mitochondrion",
+                "Golgi Apparatus",
+                "Smooth Endoplasmic Reticulum",
+                "Peroxisome"
+              ],
+              "explanation": "Mitochondria house the electron transport chain and ATP synthase on their inner membrane.",
+              "status": "unseen",
+              "streak": 0,
+              "flagged": false
+            },
+            {
+              "id": "q_seed_2",
+              "prompt": "Which structure modifies, sorts, and packages proteins for secretion or delivery to other organelles?",
+              "correctAnswer": "Golgi Apparatus",
+              "choices": [
+                "Golgi Apparatus",
+                "Nucleolus",
+                "Centrosome",
+                "Lysosome"
+              ],
+              "explanation": "The Golgi apparatus processes proteins arriving from the rough ER and dispatches them in transport vesicles.",
+              "status": "unseen",
+              "streak": 0,
+              "flagged": false
+            },
+            {
+              "id": "q_seed_3",
+              "prompt": "What is the primary function of lysosomes in eukaryotic cells?",
+              "correctAnswer": "Intracellular digestion of macromolecules",
+              "choices": [
+                "Intracellular digestion of macromolecules",
+                "Synthesis of ribosomal RNA",
+                "Beta-oxidation of very long-chain fatty acids",
+                "Calcium ion storage in muscle cells"
+              ],
+              "explanation": "Lysosomes contain acid hydrolases that break down worn-out organelles, proteins, lipids, and carbohydrates.",
+              "status": "unseen",
+              "streak": 0,
+              "flagged": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
