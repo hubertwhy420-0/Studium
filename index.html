@@ -569,14 +569,53 @@
                     </div>
                 </div>
                 <div id="ai-prompt-body" class="transition-all duration-200">
-                    <pre id="ai-prompt-template" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs text-slate-300 font-mono whitespace-pre-wrap leading-relaxed overflow-x-auto">Generate single-best-answer multiple-choice questions from the provided study material in valid CSV format with no markdown code fences and no header row.
-Each row must have 7 comma-separated double-quoted fields:
-"Question","Correct Answer","Choice 2","Choice 3","Choice 4","Choice 5","Explanation"
-Rules:
-- Column 1: Clear, self-contained question stem.
-- Column 2: The single best/correct answer.
-- Columns 3-6: Plausible distractors (use "" for Choice 5 if providing 4 options total).
-- Column 7: Concise explanation of why the correct answer is right and why key distractors are wrong.</pre>
+                    <pre id="ai-prompt-template" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs text-slate-300 font-mono whitespace-pre-wrap leading-relaxed overflow-x-auto">Act as an expert musculoskeletal physiotherapy and health sciences educator specializing in psychometric assessment. Read the provided reference material and generate high-quality, exam-style review questions formatted strictly as a CSV block.
+
+Your questions must mirror the exact tone, clinical precision, and structure of standard 5-option single-best-answer medical/physiotherapy board exams, adhering strictly to both EBMA (European Board of Medical Assessors) item-writing guidelines and the rules below.
+
+---
+
+### Step 0: Internal Content Audit & Mapping (Mandatory)
+Before generating any output, internally analyze the source text to extract all discrete facts, biomechanical/physiological mechanisms, clinical assessment procedures, diagnostic criteria, indications, contraindications, and rehabilitation protocols. Map each question to a unique concept or clinical decision point so there are zero duplicate questions or overlapping correct answers.
+
+---
+
+### Part 1: Cognitive Depth & Question Style Distribution
+Generate a balanced mix of basic foundational recall and higher-order, concept-challenging clinical reasoning questions across four distinct formats (all using 5 single-best-answer options):
+
+1. Foundational and Definitional Recall: Concise, focused questions testing essential terminology, anatomical/biomechanical principles, grading scales, or special tests (e.g., Which position represents the loose-packed position of the tibiofemoral joint? or Which description corresponds to a Maitland Grade III mobilisation?).
+2. Conceptual and Mechanistic Application: Questions requiring students to apply underlying physiological, biomechanical, or neurophysiological mechanisms rather than rote memorization (e.g., Which statement best reflects the mechanisms underlying the effects of manual therapy? or applying the concave-convex rule to a specific joint restriction).
+3. Procedural and Chronological Sequencing: Questions testing the exact sequence of phases, clinical steps, or assessment priorities (e.g., What is the correct sequence of the three phases of a plyometric movement? or Which assessment should take priority before commencing routine exercise?).
+4. Clinical Reasoning and Differential Vignettes: Brief, realistic patient scenarios describing symptom behavior, irritability, aggravating/easing factors, and physical examination findings, asking for the most likely diagnosis, pathoanatomical source, or optimal initial management/exercise prescription. (Note: Base vignettes strictly on generalizable clinical principles present in the reference text; do not test isolated trivia from specific one-off case studies unless presented as standard clinical patterns.)
+
+---
+
+### Part 2: EBMA Item-Writing & Distractor Quality Rules
+1. Focused Stems (Cover-the-Options Rule):
+   - Every stem must provide complete context followed by a focused lead-in question ending with a question mark, never an incomplete statement ending in a colon.
+   - A knowledgeable student must be able to formulate the answer before looking at the options. Strictly avoid unfocused, stemless questions (e.g., Which of the following statements is true?).
+2. Positive Phrasing (Strict Exception Rule):
+   - Write all lead-in questions positively. Do NOT use negative stems (e.g., Which is NOT..., All of the following EXCEPT...).
+   - Sole Exception: Negative phrasing is permitted ONLY when testing critical patient safety or absolute contraindications, in which case the negative term must be CAPITALIZED (e.g., Which intervention is CONTRAINDICATED in this presentation?).
+3. 5 Always-Functional, Parallel Alternatives (No Fillers):
+   - Every question MUST have 1 Correct Answer and 4 plausible, functional distractors (Choice 2, Choice 3, Choice 4, Choice 5). Never leave Choice 5 blank.
+   - Match all 5 options meticulously in grammatical form, sentence structure, clinical specificity, and word length. Never allow the correct answer to stand out by being noticeably longer or more detailed.
+   - Construct distractors from neighboring concepts, valid treatments/tests for different conditions, common student misconceptions, or incorrect biomechanical directions—never absurd or overtly false fillers.
+   - Keep options concise; place all rationale and mechanisms exclusively in the Explanation column.
+4. Prohibited Flaws & Test-Wise Cues:
+   - No Repeated Elements / Combinations: Do NOT use Roman numeral combination options (e.g., I and II only) or repeat identical phrases across options that allow guessing via logical convergence.
+   - No Aggregators: Never use All of the above or None of the above.
+   - No Vague or Absolute Terms: Avoid vague frequency terms (usually, commonly, rarely) and absolute terms (always, never, all, none) in the options or lead-in.
+   - No Lexical Cueing: Do not repeat unique keywords from the stem exclusively in the correct answer.
+   - Mutually Exclusive: Ensure zero conceptual, anatomical, or numerical overlap between any of the 5 choices.
+
+---
+
+### Part 3: Strict CSV & Plain-Text Formatting Rules
+1. Exact Column Headers: Question,Correct Answer,Choice 2,Choice 3,Choice 4,Choice 5,Explanation
+2. Double-Quote Enclosing: Enclose EVERY individual field in double quotes. Properly escape any double quotes inside a field as double-double-quotes.
+3. Zero Citation Tags or Formatting Artifacts: Strictly prohibit any citation markers, bracketed reference tags (e.g.,[cite: 1], [1]), slide numbers, page numbers, or Markdown bold/italic syntax inside ANY cell of the CSV. Use clean, plain text only.
+4. Clean Output: Output ONLY valid CSV text inside a single csv code block, with zero conversational filler before or after the block.</pre>
                 </div>
             </div>
         </div>
