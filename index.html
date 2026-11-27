@@ -1,0 +1,2310 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studium | Study & Quiz Platform</title>
+    <link id="dynamic-favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23818cf8' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'/%3E%3C/svg%3E">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #020617;
+            color: #f8fafc;
+        }
+        #studium-bg-canvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+        /* Strict Tab Visibility Rules */
+        .tab-content {
+            display: none !important;
+        }
+        .tab-content.active {
+            display: block !important;
+            width: 100%;
+            animation: tabFadeSlideIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes tabFadeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes cardReveal {
+            from {
+                opacity: 0;
+                transform: translateY(6px) scale(0.99);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        @keyframes toastSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(16px) scale(0.96);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+        }
+        @keyframes successSweep {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
+            }
+        }
+        .animate-success-sweep {
+            background: linear-gradient(120deg, rgba(16, 185, 129, 0.05) 0%, rgba(16, 185, 129, 0.22) 50%, rgba(16, 185, 129, 0.05) 100%);
+            background-size: 200% 100%;
+            animation: successSweep 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes incorrectShake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-6px); }
+            40% { transform: translateX(6px); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+        }
+        .animate-incorrect-shake {
+            animation: incorrectShake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        }
+        .animate-card-reveal {
+            animation: cardReveal 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .animate-toast-in {
+            animation: toastSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        /* Subtle Button & Interactive Polish */
+        button, label[for="restore-json-input"], label[for="csv-file-upload"] {
+            transition: transform 0.14s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, color 0.18s ease;
+        }
+        button:active:not(:disabled), label[for="restore-json-input"]:active {
+            transform: scale(0.97);
+        }
+        .mcq-option-btn:hover:not(:disabled) {
+            transform: translateX(4px);
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        /* Custom Range Slider */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-runnable-track {
+            height: 8px;
+            border-radius: 9999px;
+            background: #1e293b;
+            border: 1px solid #334155;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            margin-top: -6px;
+            background-color: #6366f1;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            border: 2px solid #e0e7ff;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+            transition: transform 0.15s ease, background-color 0.15s ease;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.12);
+            background-color: #818cf8;
+        }
+        /* Custom Select Dropdown */
+        .custom-select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-color: #020617;
+            border: 1px solid #334155;
+            border-radius: 0.75rem;
+            padding: 0.65rem 2.5rem 0.65rem 0.9rem;
+            color: #f8fafc;
+            font-size: 0.875rem;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1rem 1rem;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .custom-select:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white relative">
+
+    <!-- Undulating Geometric Grid Background Canvas -->
+    <canvas id="studium-bg-canvas"></canvas>
+
+    <!-- Toast Notification Banner -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Custom Confirmation Modal -->
+    <div id="confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 transition-opacity duration-200">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-card-reveal">
+            <h3 id="confirm-modal-title" class="text-lg font-bold text-white">Confirm Action</h3>
+            <p id="confirm-modal-message" class="text-sm text-slate-300 leading-relaxed">Are you sure you want to proceed?</p>
+            <div class="flex justify-end gap-3 pt-2">
+                <button id="confirm-modal-cancel" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium transition-colors">Cancel</button>
+                <button id="confirm-modal-ok" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-sm font-semibold transition-colors shadow-lg shadow-rose-950/50">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GitHub Sync Settings Modal (Non-blocking alternative to window.prompt) -->
+    <div id="gh-sync-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 transition-opacity duration-200">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-card-reveal">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-bold text-white">GitHub Cross-Device Sync</h3>
+                <span id="gh-sync-modal-badge" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">Local Only</span>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+                Enter your GitHub repository (<code class="text-indigo-300 bg-slate-950 px-1 py-0.5 rounded">owner/repo</code>) and a Fine-Grained Personal Access Token scoped with <strong>Contents: Read &amp; Write</strong> permission. Stored only in this browser's localStorage.
+            </p>
+            <div class="space-y-1.5">
+                <label for="gh-repo-input" class="block text-xs font-semibold uppercase tracking-wider text-slate-400">Repository (owner/repo)</label>
+                <input type="text" id="gh-repo-input" placeholder="username/Studium" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono">
+            </div>
+            <div class="space-y-1.5">
+                <label for="gh-token-input" class="block text-xs font-semibold uppercase tracking-wider text-slate-400">Personal Access Token</label>
+                <input type="password" id="gh-token-input" placeholder="github_pat_..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono">
+            </div>
+            <p id="gh-sync-status-line" class="text-[11px] text-slate-400">Ready.</p>
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800">
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="triggerManualGitHubPull()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700">Pull Now</button>
+                    <button type="button" onclick="triggerManualGitHubPush()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700">Push Now</button>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="closeGitHubSyncModal()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium">Close</button>
+                    <button type="button" onclick="saveGitHubTokenFromModal()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-950/50">Save &amp; Sync</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Question Modal -->
+    <div id="edit-question-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 transition-opacity duration-200">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 animate-card-reveal max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-lg font-bold text-white">Edit Question</h3>
+                <button type="button" onclick="closeEditQuestionModal()" class="text-slate-400 hover:text-white text-sm font-semibold">✕</button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label for="edit-q-prompt" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Question Prompt</label>
+                    <textarea id="edit-q-prompt" rows="3" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500"></textarea>
+                </div>
+                <div>
+                    <label for="edit-q-correct" class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Correct Answer</label>
+                    <input type="text" id="edit-q-correct" class="w-full bg-slate-950 border border-emerald-800/70 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                        <label for="edit-q-choice2" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Choice 2</label>
+                        <input type="text" id="edit-q-choice2" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="edit-q-choice3" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Choice 3 (Optional)</label>
+                        <input type="text" id="edit-q-choice3" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="edit-q-choice4" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Choice 4 (Optional)</label>
+                        <input type="text" id="edit-q-choice4" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="edit-q-choice5" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Choice 5 (Optional)</label>
+                        <input type="text" id="edit-q-choice5" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+                <div>
+                    <label for="edit-q-explanation" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Explanation (Optional)</label>
+                    <textarea id="edit-q-explanation" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-3 pt-1">
+                    <div>
+                        <label for="edit-q-status" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Mastery Stage</label>
+                        <select id="edit-q-status" class="custom-select w-full">
+                            <option value="unseen">Unseen</option>
+                            <option value="incorrect">Missed</option>
+                            <option value="learning">Learning</option>
+                            <option value="correct">Mastered</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end pb-2">
+                        <label class="flex items-center space-x-2 cursor-pointer text-xs font-semibold text-slate-300">
+                            <input type="checkbox" id="edit-q-flagged" class="rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-amber-500">
+                            <span>Flagged for review</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2.5 pt-3 border-t border-slate-800">
+                <button type="button" onclick="closeEditQuestionModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium">Cancel</button>
+                <button type="button" onclick="saveEditedQuestion()" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-950/50">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            <!-- Brand & Custom PNG Logo Upload -->
+            <div class="flex items-center space-x-3">
+                <label for="logo-upload-input" title="Click to upload custom PNG logo" class="relative group cursor-pointer w-10 h-10 rounded-xl bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center overflow-hidden hover:border-indigo-400 transition-all">
+                    <img id="custom-logo-img" src="" alt="Studium Logo" class="hidden w-full h-full object-contain p-1">
+                    <svg id="default-logo-svg" class="w-6 h-6 text-indigo-400 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                    </svg>
+                    <input type="file" id="logo-upload-input" accept="image/png, image/jpeg, image/webp" class="hidden" onchange="handleLogoUpload(event)">
+                </label>
+                <div>
+                    <span class="text-lg font-extrabold tracking-tight text-white">Studium</span>
+                </div>
+            </div>
+
+            <!-- Main Desktop Navigation Tabs -->
+            <nav class="hidden md:flex items-center space-x-1.5 bg-slate-950/70 p-1.5 rounded-xl border border-slate-800">
+                <button onclick="switchTab('hub')" id="nav-hub" title="Home" aria-label="Home" class="nav-btn p-2.5 rounded-lg text-sm font-medium transition-colors bg-indigo-950/60 text-indigo-300 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                </button>
+                <button onclick="switchTab('subjects')" id="nav-subjects" title="Subjects & Chapters" aria-label="Subjects & Chapters" class="nav-btn p-2.5 rounded-lg text-sm font-medium transition-colors text-slate-300 hover:text-white hover:bg-slate-800 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                </button>
+                <button onclick="switchTab('import')" id="nav-import" title="Import Questions" aria-label="Import Questions" class="nav-btn p-2.5 rounded-lg text-sm font-medium transition-colors text-slate-300 hover:text-white hover:bg-slate-800 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                </button>
+                <button onclick="switchTab('settings')" id="nav-settings" title="Settings" aria-label="Settings" class="nav-btn p-2.5 rounded-lg text-sm font-medium transition-colors text-slate-300 hover:text-white hover:bg-slate-800 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                </button>
+                <button onclick="switchTab('quiz')" id="nav-quiz" title="Active Quiz" aria-label="Active Quiz" class="nav-btn hidden px-3 py-2 rounded-lg text-sm font-medium transition-colors text-indigo-300 hover:text-white hover:bg-slate-800 flex items-center space-x-2 border border-indigo-500/40">
+                    <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
+                    <span>Active Quiz</span>
+                </button>
+            </nav>
+
+            <!-- GitHub Sync, Backup & Restore Controls -->
+            <div class="flex items-center space-x-2">
+                <button onclick="openGitHubSyncModal()" id="gh-sync-header-btn" title="Configure GitHub Cross-Device Sync" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors flex items-center space-x-1.5">
+                    <span id="gh-sync-dot" class="w-2 h-2 rounded-full bg-slate-500"></span>
+                    <span>Sync</span>
+                </button>
+                <button onclick="exportBackupJSON()" title="Download JSON Backup" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors flex items-center space-x-1.5">
+                    <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    <span>Backup</span>
+                </button>
+                <label for="restore-json-input" title="Restore from JSON Backup" class="cursor-pointer px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors flex items-center space-x-1.5">
+                    <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    <span>Restore</span>
+                    <input type="file" id="restore-json-input" accept=".json,application/json" class="hidden" onchange="importBackupJSON(event)">
+                </label>
+            </div>
+        </div>
+
+        <!-- Mobile Sub-Navigation -->
+        <div class="md:hidden flex items-center justify-center space-x-3 px-4 py-2 border-t border-slate-800/80 bg-slate-900 overflow-x-auto">
+            <button onclick="switchTab('hub')" id="mob-nav-hub" title="Home" aria-label="Home" class="nav-btn-mob p-2 rounded-lg text-xs font-medium bg-indigo-950/60 text-indigo-300 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+            </button>
+            <button onclick="switchTab('subjects')" id="mob-nav-subjects" title="Subjects" aria-label="Subjects" class="nav-btn-mob p-2 rounded-lg text-xs font-medium text-slate-300 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+            </button>
+            <button onclick="switchTab('import')" id="mob-nav-import" title="Import" aria-label="Import" class="nav-btn-mob p-2 rounded-lg text-xs font-medium text-slate-300 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+            </button>
+            <button onclick="switchTab('settings')" id="mob-nav-settings" title="Settings" aria-label="Settings" class="nav-btn-mob p-2 rounded-lg text-xs font-medium text-slate-300 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            </button>
+            <button onclick="switchTab('quiz')" id="mob-nav-quiz" class="nav-btn-mob hidden px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap text-indigo-300 flex items-center space-x-1.5 border border-indigo-500/40">
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
+                <span>Active Quiz</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col items-start">
+
+        <!-- 1. HOME / LAUNCHPAD TAB -->
+        <div id="tab-hub" class="tab-content active space-y-6 w-full max-w-4xl mx-auto">
+            <!-- Top Row: Taller Start Quiz Button (Left) + MCQ/Flashcard Mode Toggle Card (Right) -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch">
+                <button onclick="startConfiguredQuiz()" class="md:col-span-8 w-full min-h-[168px] rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-violet-800 hover:from-indigo-500 hover:via-indigo-600 hover:to-violet-700 hover:-translate-y-0.5 active:scale-[0.985] transition-all duration-200 p-7 sm:p-9 flex items-center justify-between shadow-xl shadow-indigo-950/70 border border-indigo-400/30 group cursor-pointer">
+                    <div class="flex items-center space-x-5 text-left">
+                        <div class="flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-200">
+                            <svg class="w-11 h-11 text-white ml-0.5 drop-shadow-md" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <span class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white block">Start Quiz</span>
+                            <span id="start-btn-subtext" class="text-xs sm:text-sm font-medium text-indigo-200 transition-opacity duration-150 mt-1 block">0 questions selected</span>
+                        </div>
+                    </div>
+                    <div class="hidden sm:flex items-center space-x-1.5 text-indigo-200 font-semibold text-sm group-hover:translate-x-1 transition-transform">
+                        <span>Launch</span>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                    </div>
+                </button>
+
+                <!-- Dedicated Quiz Mode Selector Card -->
+                <div class="md:col-span-4 bg-slate-900 rounded-2xl border border-slate-800 p-4 shadow-xl flex flex-col justify-between gap-2.5">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-1">Study Mode</span>
+                    <div class="grid grid-cols-2 md:grid-cols-1 gap-2 flex-1">
+                        <button type="button" id="mode-btn-mcq" onclick="setHubQuizMode('mcq')" class="w-full px-3.5 py-3 rounded-xl text-xs font-bold transition-all bg-indigo-600 text-white border border-indigo-400/40 shadow-md flex items-center justify-center space-x-2">
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <span>MCQ Mode</span>
+                        </button>
+                        <button type="button" id="mode-btn-flashcard" onclick="setHubQuizMode('flashcard')" class="w-full px-3.5 py-3 rounded-xl text-xs font-bold transition-all bg-slate-950/70 text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700 flex items-center justify-center space-x-2">
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                            <span>Flashcards</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz Configuration Panel Below -->
+            <div class="bg-slate-900 rounded-3xl border border-slate-800 p-6 sm:p-8 shadow-xl space-y-6">
+                <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                    <h2 class="text-lg font-bold text-white">Quiz Configuration</h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Subject & Chapter Selection -->
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Subject</label>
+                            <select id="hub-subject-select" onchange="onHubSubjectChange()" class="custom-select w-full"></select>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-semibold uppercase tracking-wider text-slate-400">Chapters</label>
+                                <button type="button" onclick="toggleAllHubChapters()" class="text-xs font-medium text-indigo-400 hover:text-indigo-300">Toggle All</button>
+                            </div>
+                            <div id="hub-chapter-list" class="space-y-2 bg-slate-950/60 p-3 rounded-xl border border-slate-800/80"></div>
+                        </div>
+                    </div>
+
+                    <!-- Mutually Exclusive Single-Row Filters & Question Slider -->
+                    <div class="space-y-5">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Question Filter</label>
+                            <div id="hub-filters-container" class="grid grid-cols-2 gap-2 bg-slate-950/60 p-3 rounded-xl border border-slate-800/80"></div>
+                        </div>
+
+                        <!-- Question Count Slider -->
+                        <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800/80 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <label for="hub-question-slider" class="text-xs font-semibold uppercase tracking-wider text-slate-400">Question Count</label>
+                                <span class="text-sm font-bold text-indigo-400"><span id="hub-slider-val">0</span> / <span id="hub-available-total">0</span> available</span>
+                            </div>
+                            <input type="range" id="hub-question-slider" min="0" max="0" value="0" oninput="onHubSliderInput()" class="w-full">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. SUBJECTS & CHAPTERS MANAGEMENT TAB -->
+        <div id="tab-subjects" class="tab-content space-y-6 w-full">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <!-- Left Sidebar: Sticky Subjects List -->
+                <div class="lg:col-span-4 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7.5rem)] flex flex-col bg-slate-900 rounded-2xl border border-slate-800 p-5 shadow-xl space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3 shrink-0">
+                        <h2 class="text-base font-bold text-white">Subjects</h2>
+                        <span id="sidebar-subject-count" class="text-xs font-semibold text-slate-400">0 Total</span>
+                    </div>
+
+                    <div id="subjects-sidebar-list" class="space-y-2 overflow-y-auto pr-1 flex-1 min-h-0"></div>
+
+                    <div class="pt-3 border-t border-slate-800 space-y-2.5 shrink-0">
+                        <div class="flex gap-2">
+                            <input type="text" id="new-subject-input" placeholder="New subject ..." class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+                            <button onclick="addNewSubject()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-colors shrink-0">Add</button>
+                        </div>
+                        <button onclick="deleteCurrentSubject()" class="w-full py-2 px-3 rounded-xl bg-rose-950/50 hover:bg-rose-900/60 text-rose-300 border border-rose-900/80 text-xs font-semibold transition-colors flex items-center justify-center space-x-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            <span>Delete Current Subject</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Main Right Panel: Selected Subject & Chapters -->
+                <div class="lg:col-span-8 bg-slate-900 rounded-2xl border border-slate-800 p-6 shadow-xl space-y-6">
+                    <div id="subject-detail-header" class="border-b border-slate-800 pb-5 space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <div class="flex items-center space-x-2.5">
+                                    <h2 id="selected-subject-title" class="text-2xl font-extrabold text-white">Select a Subject</h2>
+                                    <span id="selected-subject-complete-badge" class="hidden inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">
+                                        <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                        100% Mastered
+                                    </span>
+                                </div>
+                                <p id="selected-subject-stats" class="text-xs text-slate-400 mt-1">0 chapters • 0 questions</p>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <input type="text" id="new-chapter-input" placeholder="New chapter ..." class="bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 w-44 sm:w-56">
+                                <button onclick="addNewChapter()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-colors whitespace-nowrap">+ Add </button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <div class="flex justify-between text-xs font-semibold">
+                                <span class="text-slate-400">Subject Mastery</span>
+                                <span id="selected-subject-progress-text" class="text-indigo-400">0% (0/0 correct)</span>
+                            </div>
+                            <div class="w-full h-2.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                                <div id="selected-subject-progress-bar" class="h-full bg-indigo-500 transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="chapters-container" class="space-y-4"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. IMPORT TAB -->
+        <div id="tab-import" class="tab-content max-w-4xl mx-auto space-y-6 w-full">
+            <!-- CSV Import Studio -->
+            <div class="bg-slate-900 rounded-2xl border border-slate-800 p-6 sm:p-8 shadow-xl space-y-6">
+                <div class="border-b border-slate-800 pb-4">
+                    <h2 class="text-xl font-bold text-white">Import  (CSV / Text)</h2>
+                    <p class="text-xs text-slate-400 mt-1">Format: <code class="text-indigo-300 bg-slate-950 px-1.5 py-0.5 rounded">Question,Correct Answer,Choice 2,Choice 3,Choice 4,Choice 5,Explanation</code> (supports up to 5 MCQ choices)</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2"> Subject</label>
+                        <select id="import-subject-select" onchange="onImportSubjectChange()" class="custom-select w-full"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2"> Chapter</label>
+                        <select id="import-chapter-select" class="custom-select w-full"></select>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label for="csv-paste-area" class="text-xs font-semibold uppercase tracking-wider text-slate-400">Paste CSV Rows or Upload .CSV</label>
+                        <div class="flex items-center gap-3">
+                            <button type="button" onclick="loadSampleCSVTemplate()" class="text-xs font-medium text-slate-400 hover:text-indigo-300">Insert Sample Row</button>
+                            <label for="csv-file-upload" class="cursor-pointer text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                <span>Upload CSV File</span>
+                                <input type="file" id="csv-file-upload" accept=".csv,.txt,text/csv" class="hidden" onchange="handleCSVFileUpload(event)">
+                            </label>
+                        </div>
+                    </div>
+                    <textarea id="csv-paste-area" rows="8" placeholder="What organelle produces ATP?,Mitochondria,Ribosome,Golgi Apparatus,Lysosome,,Mitochondria generate most of the cell's ATP via oxidative phosphorylation." class="w-full bg-slate-950 border border-slate-700 rounded-2xl p-4 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500 font-mono leading-relaxed"></textarea>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+                    <button type="button" onclick="document.getElementById('csv-paste-area').value=''" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold">Clear Text</button>
+                    <button type="button" onclick="processCSVImport()" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold shadow-lg shadow-indigo-950/60">Import Questions</button>
+                </div>
+            </div>
+
+            <!-- AI Prompt Generator & Copy Card -->
+            <div class="bg-slate-900 rounded-2xl border border-slate-800 p-6 sm:p-8 shadow-xl space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
+                    <div>
+                        <h3 class="text-base font-bold text-white flex items-center gap-2">
+                            <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            <span>AI Study Question Generator Prompt</span>
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-1">Copy this prompt into any AI assistant along with your lecture notes to generate Studium-ready CSV rows.</p>
+                    </div>
+                    <button type="button" id="copy-ai-prompt-btn" onclick="copyAIPrompt()" class="px-4 py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-xs font-bold flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                        <span>Copy Prompt</span>
+                    </button>
+                </div>
+                <pre id="ai-prompt-template" class="bg-slate-950/90 border border-slate-800 rounded-xl p-4 text-xs text-slate-300 font-mono whitespace-pre-wrap leading-relaxed select-all">Act as an expert musculoskeletal physiotherapy and health sciences educator specializing in psychometric assessment. Read the provided reference material and generate high-quality, exam-style review questions formatted strictly as a CSV block.
+
+Your questions must mirror the exact tone, clinical precision, and structure of standard 5-option single-best-answer medical/physiotherapy board exams, adhering strictly to both EBMA (European Board of Medical Assessors) item-writing guidelines and the rules below.
+
+---
+
+### Step 0: Internal Content Audit & Mapping (Mandatory)
+Before generating any output, internally analyze the source text to extract all discrete facts, biomechanical/physiological mechanisms, clinical assessment procedures, diagnostic criteria, indications, contraindications, and rehabilitation protocols. Map each question to a unique concept or clinical decision point so there are zero duplicate questions or overlapping correct answers.
+
+---
+
+### Part 1: Cognitive Depth & Question Style Distribution
+Generate a balanced mix of basic foundational recall and higher-order, concept-challenging clinical reasoning questions across four distinct formats (all using 5 single-best-answer options):
+
+1. Foundational and Definitional Recall: Concise, focused questions testing essential terminology, anatomical/biomechanical principles, grading scales, or special tests (e.g., Which position represents the loose-packed position of the tibiofemoral joint? or Which description corresponds to a Maitland Grade III mobilisation?).
+2. Conceptual and Mechanistic Application: Questions requiring students to apply underlying physiological, biomechanical, or neurophysiological mechanisms rather than rote memorization (e.g., Which statement best reflects the mechanisms underlying the effects of manual therapy? or applying the concave-convex rule to a specific joint restriction).
+3. Procedural and Chronological Sequencing: Questions testing the exact sequence of phases, clinical steps, or assessment priorities (e.g., What is the correct sequence of the three phases of a plyometric movement? or Which assessment should take priority before commencing routine exercise?).
+4. Clinical Reasoning and Differential Vignettes: Brief, realistic patient scenarios describing symptom behavior, irritability, aggravating/easing factors, and physical examination findings, asking for the most likely diagnosis, pathoanatomical source, or optimal initial management/exercise prescription. (Note: Base vignettes strictly on generalizable clinical principles present in the reference text; do not test isolated trivia from specific one-off case studies unless presented as standard clinical patterns.)
+
+---
+
+### Part 2: EBMA Item-Writing & Distractor Quality Rules
+1. Focused Stems (Cover-the-Options Rule):
+   - Every stem must provide complete context followed by a focused lead-in question ending with a question mark, never an incomplete statement ending in a colon.
+   - A knowledgeable student must be able to formulate the answer before looking at the options. Strictly avoid unfocused, stemless questions (e.g., Which of the following statements is true?).
+2. Positive Phrasing (Strict Exception Rule):
+   - Write all lead-in questions positively. Do NOT use negative stems (e.g., Which is NOT..., All of the following EXCEPT...).
+   - Sole Exception: Negative phrasing is permitted ONLY when testing critical patient safety or absolute contraindications, in which case the negative term must be CAPITALIZED (e.g., Which intervention is CONTRAINDICATED in this presentation?).
+3. 5 Always-Functional, Parallel Alternatives (No Fillers):
+   - Every question MUST have 1 Correct Answer and 4 plausible, functional distractors (Choice 2, Choice 3, Choice 4, Choice 5). Never leave Choice 5 blank.
+   - Match all 5 options meticulously in grammatical form, sentence structure, clinical specificity, and word length. Never allow the correct answer to stand out by being noticeably longer or more detailed.
+   - Construct distractors from neighboring concepts, valid treatments/tests for different conditions, common student misconceptions, or incorrect biomechanical directions—never absurd or overtly false fillers.
+   - Keep options concise; place all rationale and mechanisms exclusively in the Explanation column.
+   - Ensure distractors are not blatant oppotites to the correct answer, ensuring answers are not guessed by isolating the odd one out
+4. Prohibited Flaws & Test-Wise Cues:
+   - No Aggregators: Never use All of the above or None of the above.
+   - No Vague or Absolute Terms: Avoid vague frequency terms (usually, commonly, rarely) and absolute terms (always, never, all, none) in the options or lead-in.
+   - No Lexical Cueing: Do not repeat unique keywords from the stem exclusively in the correct answer.
+
+---
+
+### Part 3: Strict CSV & Plain-Text Formatting Rules
+1. Exact Column Headers: Question,Correct Answer,Choice 2,Choice 3,Choice 4,Choice 5,Explanation
+2. Double-Quote Enclosing: Enclose EVERY individual field in double quotes. Properly escape any double quotes inside a field as double-double-quotes.
+3. Zero Citation Tags or Formatting Artifacts: Strictly prohibit any citation markers, bracketed reference tags (e.g.,[cite: 1], [1]), slide numbers, page numbers, or Markdown bold/italic syntax inside ANY cell of the CSV. Use clean, plain text only.
+4. Clean Output: Output ONLY valid CSV text inside a single csv code block, with zero conversational filler before or after the block.
+5. Ensure formatting follows the above criteria. Double check to ensure no question erroneously contains the correct answer from omitted commas or notation. 
+
+### Part 4: Specific Requirements
+1. 
+2. 
+3. </pre>
+            </div>
+        </div>
+
+        <!-- 5. SETTINGS TAB -->
+        <div id="tab-settings" class="tab-content max-w-3xl mx-auto space-y-6 w-full">
+            <div class="bg-slate-900 rounded-2xl border border-slate-800 p-6 sm:p-8 shadow-xl space-y-6">
+                <div class="border-b border-slate-800 pb-4">
+                    <h2 class="text-xl font-bold text-white">Study &amp; Mastery Progression Settings</h2>
+                    <p class="text-xs text-slate-400 mt-1">Configure how many consecutive correct answers are required for a question to advance across mastery stages.</p>
+                </div>
+
+                <!-- Progression Flow Diagram -->
+                <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-5 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2 text-xs font-bold">
+                        <span class="px-3 py-1.5 rounded-lg bg-rose-950/70 text-rose-300 border border-rose-800/70">Missed</span>
+                        <span class="text-slate-500">&rarr; <span id="settings-flow-m2l" class="text-amber-400">1</span> correct &rarr;</span>
+                        <span class="px-3 py-1.5 rounded-lg bg-amber-950/70 text-amber-300 border border-amber-800/70">Learning</span>
+                        <span class="text-slate-500">&rarr; <span id="settings-flow-l2m" class="text-emerald-400">1</span> more correct &rarr;</span>
+                        <span class="px-3 py-1.5 rounded-lg bg-emerald-950/70 text-emerald-300 border border-emerald-800/70">Mastered</span>
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Answering a question incorrectly resets its consecutive streak and places it in <strong class="text-rose-300">Missed</strong>. Unseen questions that are answered correctly for the first time advance immediately toward <strong class="text-amber-300">Learning</strong> or <strong class="text-emerald-300">Mastered</strong> based on the thresholds below.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div class="bg-slate-950/60 border border-slate-800 rounded-2xl p-5 space-y-2.5">
+                        <label for="setting-missed-to-learning" class="block text-xs font-bold uppercase tracking-wider text-amber-400">Missed &rarr; Learning</label>
+                        <p class="text-xs text-slate-400">Consecutive correct answers needed to move a missed question into Learning.</p>
+                        <input type="number" id="setting-missed-to-learning" min="1" max="20" value="1" oninput="updateSettingsPreview()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm font-bold text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+
+                    <div class="bg-slate-950/60 border border-slate-800 rounded-2xl p-5 space-y-2.5">
+                        <label for="setting-learning-to-mastered" class="block text-xs font-bold uppercase tracking-wider text-emerald-400">Learning &rarr; Mastered</label>
+                        <p class="text-xs text-slate-400">Additional consecutive correct answers needed to advance from Learning to Mastered.</p>
+                        <input type="number" id="setting-learning-to-mastered" min="1" max="20" value="1" oninput="updateSettingsPreview()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm font-bold text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-800">
+                    <button type="button" onclick="resetMasterySettings()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold">Reset to Defaults (1 &amp; 1)</button>
+                    <button type="button" onclick="saveMasterySettings()" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold shadow-lg shadow-indigo-950/60">Save Settings</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. ACTIVE QUIZ & FLASHCARD SESSION TAB -->
+        <div id="tab-quiz" class="tab-content max-w-3xl mx-auto space-y-6 w-full">
+            <!-- Top Quiz Session Bar -->
+            <div class="bg-slate-900 rounded-2xl border border-slate-800 p-4 shadow-xl space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center space-x-2.5">
+                        <span id="quiz-mode-badge" class="px-2.5 py-1 rounded-lg bg-indigo-950/80 text-indigo-300 border border-indigo-500/40 text-xs font-bold">MCQ Mode</span>
+                        <span id="quiz-progress-label" class="text-xs font-semibold text-slate-300">Question 1 of 10</span>
+                    </div>
+                    <div class="flex items-center space-x-2.5">
+                        <span id="quiz-score-pill" class="px-3 py-1 rounded-lg bg-emerald-950/70 text-emerald-300 border border-emerald-800/70 text-xs font-bold">0 Correct</span>
+                        <button type="button" onclick="endQuizEarly()" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700">Exit</button>
+                    </div>
+                </div>
+                <div class="w-full h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                    <div id="quiz-progress-bar" class="h-full bg-indigo-500 transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Active Question Card -->
+            <div id="quiz-active-card" class="bg-slate-900 rounded-3xl border border-slate-800 p-6 sm:p-8 shadow-2xl space-y-6 transition-colors">
+                <div class="flex items-start justify-between gap-4 border-b border-slate-800 pb-4">
+                    <span id="quiz-question-meta" class="text-xs font-semibold text-indigo-400">Subject &bull; Chapter</span>
+                    <button type="button" id="quiz-flag-btn" onclick="toggleActiveQuestionFlag()" title="Flag question for review" class="p-2 rounded-xl border border-slate-800 text-slate-400 hover:text-amber-300 transition-colors flex items-center space-x-1.5 text-xs font-semibold">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"></path></svg>
+                        <span>Flag</span>
+                    </button>
+                </div>
+
+                <h3 id="quiz-question-text" class="text-lg sm:text-xl font-bold text-white leading-relaxed">Question prompt goes here</h3>
+
+                <!-- MCQ Options Container -->
+                <div id="quiz-mcq-options" class="space-y-3"></div>
+
+                <!-- Flashcard Container -->
+                <div id="quiz-flashcard-box" class="hidden space-y-4">
+                    <div id="flashcard-reveal-panel" class="pt-2">
+                        <button type="button" onclick="revealFlashcardAnswer()" class="w-full py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold shadow-lg shadow-indigo-950/60">Reveal Answer</button>
+                    </div>
+                    <div id="flashcard-answer-panel" class="hidden space-y-4 bg-slate-950/80 border border-slate-800 rounded-2xl p-5">
+                        <div>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400 block mb-1">Correct Answer</span>
+                            <p id="flashcard-answer-text" class="text-base font-bold text-white"></p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 pt-2">
+                            <button type="button" onclick="gradeFlashcard(false)" class="py-3 rounded-xl bg-rose-950/70 hover:bg-rose-900/80 text-rose-200 border border-rose-700/70 text-xs font-bold">Missed It</button>
+                            <button type="button" onclick="gradeFlashcard(true)" class="py-3 rounded-xl bg-emerald-950/70 hover:bg-emerald-900/80 text-emerald-200 border border-emerald-700/70 text-xs font-bold">Got It Right</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Answer Explanation & Next Action -->
+                <div id="quiz-feedback-panel" class="hidden rounded-2xl bg-slate-950/90 border border-slate-800 p-5 space-y-4 animate-card-reveal">
+                    <div class="space-y-1.5">
+                        <span id="quiz-feedback-status" class="text-xs font-extrabold uppercase tracking-wider text-emerald-400">Correct</span>
+                        <p id="quiz-explanation-text" class="text-sm text-slate-300 leading-relaxed"></p>
+                    </div>
+                    <div class="flex justify-end pt-1">
+                        <button type="button" id="quiz-next-btn" onclick="advanceQuizQuestion()" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold shadow-lg shadow-indigo-950/60">Next Question &rarr;</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Session Summary Card -->
+            <div id="quiz-summary-card" class="hidden bg-slate-900 rounded-3xl border border-slate-800 p-8 shadow-2xl text-center space-y-6 animate-card-reveal">
+                <div class="space-y-2">
+                    <span class="inline-block px-3 py-1 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-500/40 text-xs font-bold">Session Complete</span>
+                    <h2 class="text-4xl font-extrabold text-white" id="summary-score-pct">100%</h2>
+                    <p class="text-xs text-slate-400">Your progress has been saved automatically.</p>
+                </div>
+                <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto">
+                    <div class="bg-emerald-950/40 border border-emerald-800/60 rounded-2xl p-4">
+                        <span class="text-2xl font-extrabold text-emerald-400 block" id="summary-correct-count">0</span>
+                        <span class="text-xs font-semibold text-emerald-200/80">Correct</span>
+                    </div>
+                    <div class="bg-rose-950/40 border border-rose-800/60 rounded-2xl p-4">
+                        <span class="text-2xl font-extrabold text-rose-400 block" id="summary-incorrect-count">0</span>
+                        <span class="text-xs font-semibold text-rose-200/80">Missed</span>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+                    <button type="button" id="summary-retry-missed-btn" onclick="retryMissedQuestions()" class="hidden px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold shadow-lg">Retry Missed Questions</button>
+                    <button type="button" onclick="endQuizEarly()" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold shadow-lg">Back to Home</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        /* =====================================================================
+           1. GLOBAL STATE, DEFAULT SEED DATA & STORAGE KEYS
+           ===================================================================== */
+        const STORAGE_KEY = 'studium_platform_state_v1';
+        const GH_TOKEN_KEY = 'studium_gh_pat_v1';
+        const GH_REPO_KEY = 'studium_gh_repo_v1';
+        const GH_FILE_PATH = 'studium-data.json';
+
+        const DEFAULT_STATE = {
+            updatedAt: Date.now(),
+            customLogo: '',
+            hubSubjectId: 'sub_default_1',
+            hubSelectedChapterIds: ['ch_default_1'],
+            hubFilter: 'all',
+            hubQuizMode: 'mcq',
+            hubQuestionCount: 5,
+            subjectsViewSubjectId: 'sub_default_1',
+            settings: {
+                missedToLearning: 1,
+                learningToMastered: 1
+            },
+            subjects: [
+                {
+                    id: 'sub_default_1',
+                    name: 'Cell Biology',
+                    chapters: [
+                        {
+                            id: 'ch_default_1',
+                            name: 'Cellular Organelles & Bioenergetics',
+                            questions: [
+                                {
+                                    id: 'q_seed_1',
+                                    prompt: 'Which organelle is primarily responsible for generating ATP via oxidative phosphorylation?',
+                                    correctAnswer: 'Mitochondrion',
+                                    choices: ['Mitochondrion', 'Golgi Apparatus', 'Smooth Endoplasmic Reticulum', 'Peroxisome'],
+                                    explanation: 'Mitochondria house the electron transport chain and ATP synthase on their inner membrane.',
+                                    status: 'unseen',
+                                    streak: 0,
+                                    flagged: false
+                                },
+                                {
+                                    id: 'q_seed_2',
+                                    prompt: 'Which structure modifies, sorts, and packages proteins for secretion or delivery to other organelles?',
+                                    correctAnswer: 'Golgi Apparatus',
+                                    choices: ['Golgi Apparatus', 'Nucleolus', 'Centrosome', 'Lysosome'],
+                                    explanation: 'The Golgi apparatus processes proteins arriving from the rough ER and dispatches them in transport vesicles.',
+                                    status: 'unseen',
+                                    streak: 0,
+                                    flagged: false
+                                },
+                                {
+                                    id: 'q_seed_3',
+                                    prompt: 'What is the primary function of lysosomes in eukaryotic cells?',
+                                    correctAnswer: 'Intracellular digestion of macromolecules',
+                                    choices: ['Intracellular digestion of macromolecules', 'Synthesis of ribosomal RNA', 'Beta-oxidation of very long-chain fatty acids', 'Calcium ion storage in muscle cells'],
+                                    explanation: 'Lysosomes contain acid hydrolases that break down worn-out organelles, proteins, lipids, and carbohydrates.',
+                                    status: 'unseen',
+                                    streak: 0,
+                                    flagged: false
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
+
+        let appState = loadInitialState();
+        let activeQuiz = null;
+        let editingQuestionTarget = null;
+        let githubFileSha = null;
+        let syncDebounceTimer = null;
+
+        function generateId(prefix = 'id') {
+            return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
+        }
+
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function shuffleArray(arr) {
+            const copy = [...arr];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
+        function loadInitialState() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return structuredClone(DEFAULT_STATE);
+                const parsed = JSON.parse(raw);
+                return normalizeState(parsed);
+            } catch (err) {
+                console.warn('Failed to parse saved state, falling back to defaults:', err);
+                return structuredClone(DEFAULT_STATE);
+            }
+        }
+
+        function normalizeState(raw) {
+            const base = structuredClone(DEFAULT_STATE);
+            if (!raw || typeof raw !== 'object') return base;
+
+            // Unwrap nested backup envelopes such as { version, exportedAt, data: { subjects: [...] } }
+            const payload = (raw.data && typeof raw.data === 'object' && Array.isArray(raw.data.subjects))
+                ? { ...raw, ...raw.data }
+                : raw;
+
+            const normalizedSubjects = Array.isArray(payload.subjects) ? payload.subjects.map(sub => ({
+                id: sub.id || generateId('sub'),
+                name: String(sub.name || sub.title || 'Untitled Subject'),
+                chapters: Array.isArray(sub.chapters) ? sub.chapters.map(ch => ({
+                    id: ch.id || generateId('ch'),
+                    name: String(ch.name || ch.title || 'Untitled Chapter'),
+                    questions: Array.isArray(ch.questions) ? ch.questions.map(q => {
+                        const promptText = String(q.prompt || q.question || '');
+                        const correctText = String(q.correctAnswer || '');
+                        const choiceList = Array.isArray(q.choices) && q.choices.length > 0
+                            ? q.choices.map(String)
+                            : (Array.isArray(q.options) && q.options.length > 0
+                                ? q.options.map(String)
+                                : (correctText ? [correctText] : []));
+
+                        // Map legacy statuses ('mastered' -> 'correct')
+                        let mappedStatus = 'unseen';
+                        if (q.status === 'mastered' || q.status === 'correct') mappedStatus = 'correct';
+                        else if (q.status === 'incorrect' || q.status === 'missed') mappedStatus = 'incorrect';
+                        else if (q.status === 'learning') mappedStatus = 'learning';
+                        else if (q.status === 'unseen') mappedStatus = 'unseen';
+
+                        return {
+                            id: q.id || generateId('q'),
+                            prompt: promptText,
+                            correctAnswer: correctText,
+                            choices: choiceList,
+                            explanation: String(q.explanation || ''),
+                            status: mappedStatus,
+                            streak: Number.isFinite(q.streak)
+                                ? q.streak
+                                : (mappedStatus === 'correct' ? 2 : (mappedStatus === 'learning' ? 1 : 0)),
+                            flagged: Boolean(q.flagged)
+                        };
+                    }) : []
+                })) : []
+            })) : base.subjects;
+
+            const firstSub = normalizedSubjects[0];
+            const firstSubChapterIds = firstSub ? firstSub.chapters.map(c => c.id) : [];
+
+            const merged = {
+                ...base,
+                ...payload,
+                hubSubjectId: payload.hubSubjectId || (firstSub ? firstSub.id : ''),
+                hubSelectedChapterIds: Array.isArray(payload.hubSelectedChapterIds)
+                    ? payload.hubSelectedChapterIds
+                    : firstSubChapterIds,
+                subjectsViewSubjectId: payload.subjectsViewSubjectId || (firstSub ? firstSub.id : ''),
+                settings: {
+                    missedToLearning: Math.max(1, parseInt(payload.settings?.missedToLearning, 10) || 1),
+                    learningToMastered: Math.max(1, parseInt(payload.settings?.learningToMastered, 10) || 1)
+                },
+                subjects: normalizedSubjects
+            };
+            delete merged.data;
+            return merged;
+        }
+
+        function saveState(triggerRemoteSync = true) {
+            appState.updatedAt = Date.now();
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+            } catch (err) {
+                showToast('Storage quota warning: unable to save locally.', 'error');
+            }
+            if (triggerRemoteSync && getGitHubConfig().token) {
+                clearTimeout(syncDebounceTimer);
+                syncDebounceTimer = setTimeout(() => {
+                    pushStateToGitHub(true);
+                }, 1500);
+            }
+        }
+
+        /* =====================================================================
+           2. TOASTS, CONFIRMATION MODAL & BRAND LOGO
+           ===================================================================== */
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            const colors = {
+                info: 'bg-slate-900 border-indigo-500/50 text-slate-100',
+                success: 'bg-emerald-950/95 border-emerald-500/60 text-emerald-100',
+                error: 'bg-rose-950/95 border-rose-500/60 text-rose-100'
+            };
+
+            const toast = document.createElement('div');
+            toast.className = `pointer-events-auto px-4 py-3 rounded-xl border shadow-2xl text-xs font-semibold flex items-center space-x-2.5 animate-toast-in ${colors[type] || colors.info}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(12px)';
+                toast.style.transition = 'all 0.2s ease';
+                setTimeout(() => toast.remove(), 220);
+            }, 3000);
+        }
+
+        function showConfirmModal(title, message, onConfirm) {
+            const modal = document.getElementById('confirm-modal');
+            document.getElementById('confirm-modal-title').textContent = title;
+            document.getElementById('confirm-modal-message').textContent = message;
+
+            const okBtn = document.getElementById('confirm-modal-ok');
+            const cancelBtn = document.getElementById('confirm-modal-cancel');
+
+            const cleanup = () => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                okBtn.onclick = null;
+                cancelBtn.onclick = null;
+            };
+
+            cancelBtn.onclick = cleanup;
+            okBtn.onclick = () => {
+                cleanup();
+                onConfirm();
+            };
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function applyCustomLogo() {
+            const img = document.getElementById('custom-logo-img');
+            const svg = document.getElementById('default-logo-svg');
+            const favicon = document.getElementById('dynamic-favicon');
+            if (appState.customLogo) {
+                img.src = appState.customLogo;
+                img.classList.remove('hidden');
+                svg.classList.add('hidden');
+                if (favicon) favicon.href = appState.customLogo;
+            } else {
+                img.classList.add('hidden');
+                svg.classList.remove('hidden');
+            }
+        }
+
+        function handleLogoUpload(event) {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                appState.customLogo = e.target.result;
+                saveState();
+                applyCustomLogo();
+                showToast('Custom brand logo updated!', 'success');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        /* =====================================================================
+           3. NAVIGATION & TAB ROUTING
+           ===================================================================== */
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            const target = document.getElementById(`tab-${tabName}`);
+            if (target) target.classList.add('active');
+
+            // Desktop nav highlights
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-950/60', 'text-indigo-300');
+                btn.classList.add('text-slate-300');
+            });
+            const activeDesktop = document.getElementById(`nav-${tabName}`);
+            if (activeDesktop) {
+                activeDesktop.classList.remove('text-slate-300');
+                activeDesktop.classList.add('bg-indigo-950/60', 'text-indigo-300');
+            }
+
+            // Mobile nav highlights
+            document.querySelectorAll('.nav-btn-mob').forEach(btn => {
+                btn.classList.remove('bg-indigo-950/60', 'text-indigo-300');
+                btn.classList.add('text-slate-300');
+            });
+            const activeMobile = document.getElementById(`mob-nav-${tabName}`);
+            if (activeMobile) {
+                activeMobile.classList.remove('text-slate-300');
+                activeMobile.classList.add('bg-indigo-950/60', 'text-indigo-300');
+            }
+
+            if (tabName === 'hub') renderHub();
+            if (tabName === 'subjects') renderSubjectsManager();
+            if (tabName === 'import') renderImportSelectors();
+            if (tabName === 'settings') renderSettingsTab();
+        }
+
+        /* =====================================================================
+           4. DATA LOOKUPS & SELECTION GUARDS
+           ===================================================================== */
+        function getSubjectById(id) {
+            return appState.subjects.find(s => s.id === id) || null;
+        }
+
+        function ensureValidSelections() {
+            if (appState.subjects.length === 0) {
+                appState.hubSubjectId = '';
+                appState.hubSelectedChapterIds = [];
+                appState.subjectsViewSubjectId = '';
+                return;
+            }
+
+            if (!getSubjectById(appState.hubSubjectId)) {
+                appState.hubSubjectId = appState.subjects[0].id;
+                appState.hubSelectedChapterIds = appState.subjects[0].chapters.map(c => c.id);
+            }
+
+            const hubSub = getSubjectById(appState.hubSubjectId);
+            if (hubSub) {
+                const validIds = new Set(hubSub.chapters.map(c => c.id));
+                appState.hubSelectedChapterIds = appState.hubSelectedChapterIds.filter(id => validIds.has(id));
+            }
+
+            if (!getSubjectById(appState.subjectsViewSubjectId)) {
+                appState.subjectsViewSubjectId = appState.subjects[0].id;
+            }
+        }
+
+        /* =====================================================================
+           5. HOME / LAUNCHPAD HUB LOGIC
+           ===================================================================== */
+        function setHubQuizMode(mode) {
+            appState.hubQuizMode = mode === 'flashcard' ? 'flashcard' : 'mcq';
+            saveState(false);
+            updateHubModeButtons();
+        }
+
+        function updateHubModeButtons() {
+            const mcqBtn = document.getElementById('mode-btn-mcq');
+            const fcBtn = document.getElementById('mode-btn-flashcard');
+            if (!mcqBtn || !fcBtn) return;
+
+            const activeClasses = ['bg-indigo-600', 'text-white', 'border-indigo-400/40', 'shadow-md'];
+            const inactiveClasses = ['bg-slate-950/70', 'text-slate-400', 'hover:text-white', 'border-slate-800', 'hover:border-slate-700'];
+
+            if (appState.hubQuizMode === 'mcq') {
+                mcqBtn.classList.add(...activeClasses);
+                mcqBtn.classList.remove(...inactiveClasses);
+                fcBtn.classList.remove(...activeClasses);
+                fcBtn.classList.add(...inactiveClasses);
+            } else {
+                fcBtn.classList.add(...activeClasses);
+                fcBtn.classList.remove(...inactiveClasses);
+                mcqBtn.classList.remove(...activeClasses);
+                mcqBtn.classList.add(...inactiveClasses);
+            }
+        }
+
+        function onHubSubjectChange() {
+            const subId = document.getElementById('hub-subject-select').value;
+            appState.hubSubjectId = subId;
+            const sub = getSubjectById(subId);
+            appState.hubSelectedChapterIds = sub ? sub.chapters.map(c => c.id) : [];
+            saveState(false);
+            renderHub();
+        }
+
+        function toggleHubChapter(chapterId) {
+            const idx = appState.hubSelectedChapterIds.indexOf(chapterId);
+            if (idx >= 0) {
+                appState.hubSelectedChapterIds.splice(idx, 1);
+            } else {
+                appState.hubSelectedChapterIds.push(chapterId);
+            }
+            saveState(false);
+            renderHub();
+        }
+
+        function toggleAllHubChapters() {
+            const sub = getSubjectById(appState.hubSubjectId);
+            if (!sub) return;
+            if (appState.hubSelectedChapterIds.length === sub.chapters.length) {
+                appState.hubSelectedChapterIds = [];
+            } else {
+                appState.hubSelectedChapterIds = sub.chapters.map(c => c.id);
+            }
+            saveState(false);
+            renderHub();
+        }
+
+        function setHubFilter(filterKey) {
+            appState.hubFilter = filterKey;
+            saveState(false);
+            renderHub();
+        }
+
+        function onHubSliderInput() {
+            const slider = document.getElementById('hub-question-slider');
+            const val = parseInt(slider.value, 10) || 0;
+            appState.hubQuestionCount = val;
+            document.getElementById('hub-slider-val').textContent = val;
+            document.getElementById('start-btn-subtext').textContent = `${val} question${val === 1 ? '' : 's'} selected`;
+        }
+
+        function getFilteredHubQuestions() {
+            const sub = getSubjectById(appState.hubSubjectId);
+            if (!sub) return [];
+            const selectedSet = new Set(appState.hubSelectedChapterIds);
+            const pool = [];
+
+            sub.chapters.forEach(ch => {
+                if (!selectedSet.has(ch.id)) return;
+                ch.questions.forEach(q => {
+                    let include = true;
+                    if (appState.hubFilter === 'unseen') include = q.status === 'unseen';
+                    if (appState.hubFilter === 'incorrect') include = q.status === 'incorrect';
+                    if (appState.hubFilter === 'learning') include = q.status === 'learning';
+                    if (appState.hubFilter === 'flagged') include = Boolean(q.flagged);
+                    if (include) {
+                        pool.push({
+                            ...q,
+                            subjectId: sub.id,
+                            subjectName: sub.name,
+                            chapterId: ch.id,
+                            chapterName: ch.name
+                        });
+                    }
+                });
+            });
+
+            return pool;
+        }
+
+        function renderHub() {
+            ensureValidSelections();
+            updateHubModeButtons();
+
+            const subSelect = document.getElementById('hub-subject-select');
+            if (appState.subjects.length === 0) {
+                subSelect.innerHTML = `<option value="">No subjects available</option>`;
+            } else {
+                subSelect.innerHTML = appState.subjects.map(s =>
+                    `<option value="${s.id}" ${s.id === appState.hubSubjectId ? 'selected' : ''}>${escapeHTML(s.name)}</option>`
+                ).join('');
+            }
+
+            // Chapter interactive UI cards (no checkboxes)
+            const sub = getSubjectById(appState.hubSubjectId);
+            const chContainer = document.getElementById('hub-chapter-list');
+            if (!sub || sub.chapters.length === 0) {
+                chContainer.innerHTML = `<p class="text-xs text-slate-500 py-2 text-center">No chapters in this subject yet.</p>`;
+            } else {
+                const selectedSet = new Set(appState.hubSelectedChapterIds);
+                chContainer.innerHTML = sub.chapters.map(ch => {
+                    const isSelected = selectedSet.has(ch.id);
+                    const totalQ = ch.questions.length;
+                    const masteredQ = ch.questions.filter(q => q.status === 'correct').length;
+                    return `
+                        <button type="button" onclick="toggleHubChapter('${ch.id}')" class="w-full text-left px-3.5 py-2.5 rounded-xl border transition-all flex items-center justify-between gap-3 ${
+                            isSelected
+                                ? 'bg-indigo-600/20 border-indigo-500/60 text-white shadow-sm'
+                                : 'bg-slate-900/70 border-slate-800/90 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                        }">
+                            <div class="flex items-center space-x-2.5 min-w-0">
+                                <span class="w-2.5 h-2.5 rounded-full shrink-0 transition-colors ${isSelected ? 'bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.8)]' : 'bg-slate-700'}"></span>
+                                <span class="text-xs font-semibold truncate">${escapeHTML(ch.name)}</span>
+                            </div>
+                            <span class="text-[11px] font-bold px-2 py-0.5 rounded-md shrink-0 ${
+                                isSelected ? 'bg-indigo-950/90 text-indigo-300 border border-indigo-500/30' : 'bg-slate-950 text-slate-500'
+                            }">${masteredQ}/${totalQ}</span>
+                        </button>
+                    `;
+                }).join('');
+            }
+
+            // Question Filter buttons with icons
+            const selectedSet = new Set(appState.hubSelectedChapterIds);
+            const allSelectedQuestions = [];
+            if (sub) {
+                sub.chapters.forEach(ch => {
+                    if (selectedSet.has(ch.id)) allSelectedQuestions.push(...ch.questions);
+                });
+            }
+
+            const filterDefs = [
+                {
+                    key: 'all',
+                    label: 'All',
+                    count: allSelectedQuestions.length,
+                    icon: `<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>`
+                },
+                {
+                    key: 'unseen',
+                    label: 'Unseen',
+                    count: allSelectedQuestions.filter(q => q.status === 'unseen').length,
+                    icon: `<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>`
+                },
+                {
+                    key: 'incorrect',
+                    label: 'Missed',
+                    count: allSelectedQuestions.filter(q => q.status === 'incorrect').length,
+                    icon: `<svg class="w-4 h-4 shrink-0 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`
+                },
+                {
+                    key: 'learning',
+                    label: 'Learning',
+                    count: allSelectedQuestions.filter(q => q.status === 'learning').length,
+                    icon: `<svg class="w-4 h-4 shrink-0 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>`
+                },
+                {
+                    key: 'flagged',
+                    label: 'Flagged',
+                    count: allSelectedQuestions.filter(q => q.flagged).length,
+                    icon: `<svg class="w-4 h-4 shrink-0 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"></path></svg>`
+                }
+            ];
+
+            const filterContainer = document.getElementById('hub-filters-container');
+            filterContainer.innerHTML = filterDefs.map(f => {
+                const active = appState.hubFilter === f.key;
+                return `
+                    <button type="button" onclick="setHubFilter('${f.key}')" class="px-3 py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-between gap-2 ${
+                        active
+                            ? 'bg-indigo-600/25 border-indigo-500 text-white shadow-sm'
+                            : 'bg-slate-900/70 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                    }">
+                        <span class="flex items-center space-x-2 truncate">
+                            ${f.icon}
+                            <span>${f.label}</span>
+                        </span>
+                        <span class="text-[11px] px-1.5 py-0.5 rounded-md ${active ? 'bg-indigo-600 text-white' : 'bg-slate-950 text-slate-400'}">${f.count}</span>
+                    </button>
+                `;
+            }).join('');
+
+            // Slider update
+            const availablePool = getFilteredHubQuestions();
+            const maxAvailable = availablePool.length;
+            const slider = document.getElementById('hub-question-slider');
+            slider.min = maxAvailable > 0 ? 1 : 0;
+            slider.max = maxAvailable;
+
+            let targetVal = appState.hubQuestionCount || maxAvailable;
+            if (maxAvailable === 0) targetVal = 0;
+            else if (targetVal > maxAvailable) targetVal = maxAvailable;
+            else if (targetVal < 1) targetVal = Math.min(10, maxAvailable);
+
+            appState.hubQuestionCount = targetVal;
+            slider.value = targetVal;
+
+            document.getElementById('hub-available-total').textContent = maxAvailable;
+            document.getElementById('hub-slider-val').textContent = targetVal;
+            document.getElementById('start-btn-subtext').textContent = `${targetVal} question${targetVal === 1 ? '' : 's'} selected`;
+        }
+
+        /* =====================================================================
+           6. SUBJECTS, CHAPTERS & DIRECT QUESTION EDITOR
+           ===================================================================== */
+        function selectSubjectsSidebarItem(subjectId) {
+            appState.subjectsViewSubjectId = subjectId;
+            renderSubjectsManager();
+        }
+
+        function addNewSubject() {
+            const input = document.getElementById('new-subject-input');
+            const name = input.value.trim();
+            if (!name) {
+                showToast('Please enter a subject name.', 'error');
+                return;
+            }
+            const newSub = {
+                id: generateId('sub'),
+                name,
+                chapters: [
+                    {
+                        id: generateId('ch'),
+                        name: 'General',
+                        questions: []
+                    }
+                ]
+            };
+            appState.subjects.push(newSub);
+            appState.subjectsViewSubjectId = newSub.id;
+            if (!appState.hubSubjectId) {
+                appState.hubSubjectId = newSub.id;
+                appState.hubSelectedChapterIds = [newSub.chapters[0].id];
+            }
+            input.value = '';
+            saveState();
+            renderSubjectsManager();
+            showToast(`Subject "${name}" created.`, 'success');
+        }
+
+        function deleteCurrentSubject() {
+            const sub = getSubjectById(appState.subjectsViewSubjectId);
+            if (!sub) return;
+            showConfirmModal(
+                'Delete Subject',
+                `Delete "${sub.name}" and all of its chapters and questions permanently?`,
+                () => {
+                    appState.subjects = appState.subjects.filter(s => s.id !== sub.id);
+                    ensureValidSelections();
+                    saveState();
+                    renderSubjectsManager();
+                    showToast(`Deleted "${sub.name}".`, 'info');
+                }
+            );
+        }
+
+        function addNewChapter() {
+            const sub = getSubjectById(appState.subjectsViewSubjectId);
+            if (!sub) {
+                showToast('Select or create a subject first.', 'error');
+                return;
+            }
+            const input = document.getElementById('new-chapter-input');
+            const title = input.value.trim();
+            if (!title) {
+                showToast('Please enter a chapter title.', 'error');
+                return;
+            }
+            const newCh = {
+                id: generateId('ch'),
+                name: title,
+                questions: []
+            };
+            sub.chapters.push(newCh);
+            if (appState.hubSubjectId === sub.id) {
+                appState.hubSelectedChapterIds.push(newCh.id);
+            }
+            input.value = '';
+            saveState();
+            renderSubjectsManager();
+            showToast(`Chapter "${title}" added.`, 'success');
+        }
+
+        function deleteChapter(chapterId) {
+            const sub = getSubjectById(appState.subjectsViewSubjectId);
+            if (!sub) return;
+            const ch = sub.chapters.find(c => c.id === chapterId);
+            if (!ch) return;
+            showConfirmModal(
+                'Delete Chapter',
+                `Delete chapter "${ch.name}" and its ${ch.questions.length} question(s)?`,
+                () => {
+                    sub.chapters = sub.chapters.filter(c => c.id !== chapterId);
+                    appState.hubSelectedChapterIds = appState.hubSelectedChapterIds.filter(id => id !== chapterId);
+                    saveState();
+                    renderSubjectsManager();
+                    showToast(`Chapter "${ch.name}" deleted.`, 'info');
+                }
+            );
+        }
+
+        function resetChapterProgress(chapterId) {
+            const sub = getSubjectById(appState.subjectsViewSubjectId);
+            if (!sub) return;
+            const ch = sub.chapters.find(c => c.id === chapterId);
+            if (!ch) return;
+            showConfirmModal(
+                'Reset Chapter Progress',
+                `Reset all ${ch.questions.length} questions in "${ch.name}" back to Unseen?`,
+                () => {
+                    ch.questions.forEach(q => {
+                        q.status = 'unseen';
+                        q.streak = 0;
+                    });
+                    saveState();
+                    renderSubjectsManager();
+                    showToast(`Progress reset for "${ch.name}".`, 'info');
+                }
+            );
+        }
+
+        function deleteQuestionFromChapter(chapterId, questionId) {
+            const sub = getSubjectById(appState.subjectsViewSubjectId);
+            if (!sub) return;
+            const ch = sub.chapters.find(c => c.id === chapterId);
+            if (!ch) return;
+            ch.questions = ch.questions.filter(q => q.id !== questionId);
+            saveState();
+            renderSubjectsManager();
+            showToast('Question removed.', 'info');
+        }
+
+        function openEditQuestionModal(subjectId, chapterId, questionId) {
+            const sub = getSubjectById(subjectId);
+            const ch = sub?.chapters.find(c => c.id === chapterId);
+            const q = ch?.questions.find(item => item.id === questionId);
+            if (!q) return;
+
+            editingQuestionTarget = { subjectId, chapterId, questionId };
+
+            const distractors = (q.choices || []).filter(c => c !== q.correctAnswer);
+            document.getElementById('edit-q-prompt').value = q.prompt;
+            document.getElementById('edit-q-correct').value = q.correctAnswer;
+            document.getElementById('edit-q-choice2').value = distractors[0] || '';
+            document.getElementById('edit-q-choice3').value = distractors[1] || '';
+            document.getElementById('edit-q-choice4').value = distractors[2] || '';
+            document.getElementById('edit-q-choice5').value = distractors[3] || '';
+            document.getElementById('edit-q-explanation').value = q.explanation || '';
+            document.getElementById('edit-q-status').value = q.status || 'unseen';
+            document.getElementById('edit-q-flagged').checked = Boolean(q.flagged);
+
+            const modal = document.getElementById('edit-question-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeEditQuestionModal() {
+            editingQuestionTarget = null;
+            const modal = document.getElementById('edit-question-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function saveEditedQuestion() {
+            if (!editingQuestionTarget) return;
+            const { subjectId, chapterId, questionId } = editingQuestionTarget;
+            const sub = getSubjectById(subjectId);
+            const ch = sub?.chapters.find(c => c.id === chapterId);
+            const q = ch?.questions.find(item => item.id === questionId);
+            if (!q) return;
+
+            const prompt = document.getElementById('edit-q-prompt').value.trim();
+            const correct = document.getElementById('edit-q-correct').value.trim();
+            if (!prompt || !correct) {
+                showToast('Question prompt and correct answer are required.', 'error');
+                return;
+            }
+
+            const rawChoices = [
+                correct,
+                document.getElementById('edit-q-choice2').value.trim(),
+                document.getElementById('edit-q-choice3').value.trim(),
+                document.getElementById('edit-q-choice4').value.trim(),
+                document.getElementById('edit-q-choice5').value.trim()
+            ].filter(Boolean);
+
+            q.prompt = prompt;
+            q.correctAnswer = correct;
+            q.choices = Array.from(new Set(rawChoices));
+            q.explanation = document.getElementById('edit-q-explanation').value.trim();
+            q.status = document.getElementById('edit-q-status').value;
+            q.flagged = document.getElementById('edit-q-flagged').checked;
+
+            if (q.status === 'unseen' || q.status === 'incorrect') q.streak = 0;
+            if (q.status === 'learning' && q.streak < 1) q.streak = 1;
+
+            saveState();
+            closeEditQuestionModal();
+            renderSubjectsManager();
+            showToast('Question updated successfully.', 'success');
+        }
+
+        function renderSubjectsManager() {
+            ensureValidSelections();
+
+            const sidebarList = document.getElementById('subjects-sidebar-list');
+            document.getElementById('sidebar-subject-count').textContent = `${appState.subjects.length} Total`;
+
+            if (appState.subjects.length === 0) {
+                sidebarList.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">No subjects yet. Add one below.</p>`;
+            } else {
+                sidebarList.innerHTML = appState.subjects.map(s => {
+                    const active = s.id === appState.subjectsViewSubjectId;
+                    const qCount = s.chapters.reduce((acc, c) => acc + c.questions.length, 0);
+                    return `
+                        <button type="button" onclick="selectSubjectsSidebarItem('${s.id}')" class="w-full text-left px-3.5 py-3 rounded-xl border transition-all flex items-center justify-between ${
+                            active
+                                ? 'bg-indigo-600/20 border-indigo-500/60 text-white shadow-sm'
+                                : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700 hover:text-white'
+                        }">
+                            <span class="text-sm font-bold truncate pr-2">${escapeHTML(s.name)}</span>
+                            <span class="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-slate-900 text-slate-400 shrink-0">${qCount} Q</span>
+                        </button>
+                    `;
+                }).join('');
+            }
+
+            const sub = getSubjectById(appState.subjectsViewSubjectId);
+            const chaptersContainer = document.getElementById('chapters-container');
+            if (!sub) {
+                document.getElementById('selected-subject-title').textContent = 'No Subject Selected';
+                document.getElementById('selected-subject-stats').textContent = '0 chapters • 0 questions';
+                document.getElementById('selected-subject-progress-text').textContent = '0% (0/0 mastered)';
+                document.getElementById('selected-subject-progress-bar').style.width = '0%';
+                document.getElementById('selected-subject-complete-badge').classList.add('hidden');
+                chaptersContainer.innerHTML = '';
+                return;
+            }
+
+            const totalQ = sub.chapters.reduce((acc, c) => acc + c.questions.length, 0);
+            const masteredQ = sub.chapters.reduce((acc, c) => acc + c.questions.filter(q => q.status === 'correct').length, 0);
+            const pct = totalQ > 0 ? Math.round((masteredQ / totalQ) * 100) : 0;
+
+            document.getElementById('selected-subject-title').textContent = sub.name;
+            document.getElementById('selected-subject-stats').textContent = `${sub.chapters.length} chapter${sub.chapters.length === 1 ? '' : 's'} • ${totalQ} question${totalQ === 1 ? '' : 's'}`;
+            document.getElementById('selected-subject-progress-text').textContent = `${pct}% (${masteredQ}/${totalQ} mastered)`;
+            document.getElementById('selected-subject-progress-bar').style.width = `${pct}%`;
+
+            const badge = document.getElementById('selected-subject-complete-badge');
+            if (totalQ > 0 && masteredQ === totalQ) badge.classList.remove('hidden');
+            else badge.classList.add('hidden');
+
+            if (sub.chapters.length === 0) {
+                chaptersContainer.innerHTML = `<p class="text-sm text-slate-500 text-center py-8">No chapters yet. Add a chapter above to organize questions.</p>`;
+                return;
+            }
+
+            const statusBadgeMap = {
+                unseen: `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-800 text-slate-300">Unseen</span>`,
+                incorrect: `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-950 text-rose-300 border border-rose-800/70">Missed</span>`,
+                learning: `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-800/70">Learning</span>`,
+                correct: `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800/70">Mastered</span>`
+            };
+
+            chaptersContainer.innerHTML = sub.chapters.map(ch => {
+                const chTotal = ch.questions.length;
+                const chMastered = ch.questions.filter(q => q.status === 'correct').length;
+                return `
+                    <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-5 space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+                            <div>
+                                <h3 class="text-base font-bold text-white">${escapeHTML(ch.name)}</h3>
+                                <p class="text-xs text-slate-400">${chMastered}/${chTotal} mastered</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="resetChapterProgress('${ch.id}')" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 text-xs font-semibold">Reset</button>
+                                <button type="button" onclick="deleteChapter('${ch.id}')" class="px-3 py-1.5 rounded-lg bg-rose-950/50 hover:bg-rose-900/60 text-rose-300 border border-rose-900/80 text-xs font-semibold">Delete</button>
+                            </div>
+                        </div>
+
+                        ${ch.questions.length === 0
+                            ? `<p class="text-xs text-slate-500 py-2">No questions in this chapter yet. Import CSV rows or add questions.</p>`
+                            : `<div class="space-y-2.5 max-h-96 overflow-y-auto pr-1">
+                                ${ch.questions.map((q, i) => `
+                                    <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 flex items-start justify-between gap-3">
+                                        <div class="space-y-1 min-w-0 flex-1">
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <span class="text-xs font-bold text-slate-500">#${i + 1}</span>
+                                                ${statusBadgeMap[q.status] || statusBadgeMap.unseen}
+                                                ${q.flagged ? `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">Flagged</span>` : ''}
+                                            </div>
+                                            <p class="text-sm font-semibold text-slate-100 leading-snug">${escapeHTML(q.prompt)}</p>
+                                            <p class="text-xs text-emerald-400 font-medium">Answer: ${escapeHTML(q.correctAnswer)}</p>
+                                        </div>
+                                        <div class="flex items-center gap-1.5 shrink-0">
+                                            <button type="button" onclick="openEditQuestionModal('${sub.id}', '${ch.id}', '${q.id}')" title="Edit Question" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-indigo-600/30 text-slate-200 hover:text-indigo-200 border border-slate-700 text-xs font-semibold">Edit</button>
+                                            <button type="button" onclick="deleteQuestionFromChapter('${ch.id}', '${q.id}')" title="Delete Question" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-rose-900/60 text-slate-400 hover:text-rose-200 border border-slate-700 text-xs font-semibold">✕</button>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>`
+                        }
+                    </div>
+                `;
+            }).join('');
+        }
+
+        /* =====================================================================
+           7. CSV IMPORT STUDIO & AI PROMPT COPY
+           ===================================================================== */
+        function renderImportSelectors() {
+            ensureValidSelections();
+            const subSelect = document.getElementById('import-subject-select');
+            if (appState.subjects.length === 0) {
+                subSelect.innerHTML = `<option value="">No subjects available</option>`;
+                document.getElementById('import-chapter-select').innerHTML = `<option value="">No chapters</option>`;
+                return;
+            }
+
+            subSelect.innerHTML = appState.subjects.map(s =>
+                `<option value="${s.id}" ${s.id === appState.subjectsViewSubjectId ? 'selected' : ''}>${escapeHTML(s.name)}</option>`
+            ).join('');
+            onImportSubjectChange();
+        }
+
+        function onImportSubjectChange() {
+            const subId = document.getElementById('import-subject-select').value;
+            const sub = getSubjectById(subId);
+            const chSelect = document.getElementById('import-chapter-select');
+            if (!sub || sub.chapters.length === 0) {
+                chSelect.innerHTML = `<option value="">No chapters available</option>`;
+                return;
+            }
+            chSelect.innerHTML = sub.chapters.map(c =>
+                `<option value="${c.id}">${escapeHTML(c.name)}</option>`
+            ).join('');
+        }
+
+        function loadSampleCSVTemplate() {
+            const area = document.getElementById('csv-paste-area');
+            const sample = `"What molecule serves as the universal energy currency of the cell?","ATP","NADH","FADH2","Glucose","","Adenosine triphosphate (ATP) transfers chemical energy via its high-energy phosphate bonds."`;
+            area.value = area.value.trim() ? `${area.value.trim()}\n${sample}` : sample;
+        }
+
+        function handleCSVFileUpload(event) {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                document.getElementById('csv-paste-area').value = e.target.result || '';
+                showToast(`Loaded "${file.name}". Review and click Import Questions.`, 'info');
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function parseCSVLine(line) {
+            const fields = [];
+            let current = '';
+            let inQuotes = false;
+            for (let i = 0; i < line.length; i++) {
+                const ch = line[i];
+                if (ch === '"') {
+                    if (inQuotes && line[i + 1] === '"') {
+                        current += '"';
+                        i++;
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (ch === ',' && !inQuotes) {
+                    fields.push(current.trim());
+                    current = '';
+                } else {
+                    current += ch;
+                }
+            }
+            fields.push(current.trim());
+            return fields;
+        }
+
+        function processCSVImport() {
+            const subId = document.getElementById('import-subject-select').value;
+            const chId = document.getElementById('import-chapter-select').value;
+            const sub = getSubjectById(subId);
+            const ch = sub?.chapters.find(c => c.id === chId);
+
+            if (!sub || !ch) {
+                showToast('Select a valid target subject and chapter first.', 'error');
+                return;
+            }
+
+            const rawText = document.getElementById('csv-paste-area').value.trim();
+            if (!rawText) {
+                showToast('Paste CSV rows or upload a CSV file first.', 'error');
+                return;
+            }
+
+            const lines = rawText.split(/\r?\n/).filter(l => l.trim().length > 0);
+            let addedCount = 0;
+
+            lines.forEach(line => {
+                const cols = parseCSVLine(line);
+                if (cols.length < 2) return;
+                const prompt = cols[0];
+                const correctAnswer = cols[1];
+                if (!prompt || !correctAnswer) return;
+
+                const rawChoices = [correctAnswer, cols[2], cols[3], cols[4], cols[5]].filter(Boolean);
+                const explanation = cols[6] || '';
+
+                ch.questions.push({
+                    id: generateId('q'),
+                    prompt,
+                    correctAnswer,
+                    choices: Array.from(new Set(rawChoices)),
+                    explanation,
+                    status: 'unseen',
+                    streak: 0,
+                    flagged: false
+                });
+                addedCount++;
+            });
+
+            if (addedCount === 0) {
+                showToast('No valid rows found. Check CSV formatting.', 'error');
+                return;
+            }
+
+            document.getElementById('csv-paste-area').value = '';
+            saveState();
+            showToast(`Imported ${addedCount} question${addedCount === 1 ? '' : 's'} into "${ch.name}".`, 'success');
+        }
+
+        function copyAIPrompt() {
+            const promptEl = document.getElementById('ai-prompt-template');
+            if (!promptEl) return;
+            const text = promptEl.textContent;
+
+            const tempArea = document.createElement('textarea');
+            tempArea.value = text;
+            tempArea.style.position = 'fixed';
+            tempArea.style.opacity = '0';
+            document.body.appendChild(tempArea);
+            tempArea.select();
+            try {
+                document.execCommand('copy');
+                showToast('AI study prompt copied to clipboard!', 'success');
+            } catch (err) {
+                showToast('Unable to copy prompt automatically.', 'error');
+            }
+            document.body.removeChild(tempArea);
+        }
+
+        /* =====================================================================
+           8. SETTINGS TAB (MASTERY PROGRESSION THRESHOLDS)
+           ===================================================================== */
+        function renderSettingsTab() {
+            const m2l = appState.settings?.missedToLearning || 1;
+            const l2m = appState.settings?.learningToMastered || 1;
+            document.getElementById('setting-missed-to-learning').value = m2l;
+            document.getElementById('setting-learning-to-mastered').value = l2m;
+            updateSettingsPreview();
+        }
+
+        function updateSettingsPreview() {
+            const m2l = Math.max(1, parseInt(document.getElementById('setting-missed-to-learning').value, 10) || 1);
+            const l2m = Math.max(1, parseInt(document.getElementById('setting-learning-to-mastered').value, 10) || 1);
+            document.getElementById('settings-flow-m2l').textContent = m2l;
+            document.getElementById('settings-flow-l2m').textContent = l2m;
+        }
+
+        function saveMasterySettings() {
+            const m2l = Math.max(1, Math.min(20, parseInt(document.getElementById('setting-missed-to-learning').value, 10) || 1));
+            const l2m = Math.max(1, Math.min(20, parseInt(document.getElementById('setting-learning-to-mastered').value, 10) || 1));
+            appState.settings = {
+                missedToLearning: m2l,
+                learningToMastered: l2m
+            };
+            saveState();
+            renderSettingsTab();
+            showToast('Mastery progression thresholds saved.', 'success');
+        }
+
+        function resetMasterySettings() {
+            appState.settings = { missedToLearning: 1, learningToMastered: 1 };
+            saveState();
+            renderSettingsTab();
+            showToast('Settings reset to defaults (1 & 1).', 'info');
+        }
+
+        /* =====================================================================
+           9. ACTIVE QUIZ & FLASHCARD SESSION ENGINE
+           ===================================================================== */
+        function startConfiguredQuiz() {
+            const pool = getFilteredHubQuestions();
+            if (pool.length === 0) {
+                showToast('No questions match your current chapter and filter selection.', 'error');
+                return;
+            }
+            const count = Math.max(1, Math.min(pool.length, appState.hubQuestionCount || pool.length));
+            const selected = shuffleArray(pool).slice(0, count);
+            launchQuizSession(selected, appState.hubQuizMode);
+        }
+
+        function launchQuizSession(questions, mode) {
+            activeQuiz = {
+                mode: mode || 'mcq',
+                questions,
+                currentIndex: 0,
+                correctCount: 0,
+                incorrectQuestions: [],
+                answeredCurrent: false
+            };
+
+            document.getElementById('nav-quiz').classList.remove('hidden');
+            document.getElementById('mob-nav-quiz').classList.remove('hidden');
+            document.getElementById('quiz-active-card').classList.remove('hidden');
+            document.getElementById('quiz-summary-card').classList.add('hidden');
+
+            switchTab('quiz');
+            renderActiveQuizQuestion();
+        }
+
+        function updateQuestionMastery(questionRef, isCorrect) {
+            const sub = getSubjectById(questionRef.subjectId);
+            const ch = sub?.chapters.find(c => c.id === questionRef.chapterId);
+            const q = ch?.questions.find(item => item.id === questionRef.id);
+            if (!q) return;
+
+            const m2l = appState.settings?.missedToLearning || 1;
+            const l2m = appState.settings?.learningToMastered || 1;
+
+            if (!isCorrect) {
+                q.status = 'incorrect';
+                q.streak = 0;
+            } else {
+                q.streak = (q.streak || 0) + 1;
+                if (q.status === 'incorrect') {
+                    if (q.streak >= m2l) {
+                        q.status = 'learning';
+                        q.streak = 0;
+                    }
+                } else if (q.status === 'unseen') {
+                    if (l2m <= 1) {
+                        q.status = 'correct';
+                    } else {
+                        q.status = 'learning';
+                        q.streak = 1;
+                    }
+                } else if (q.status === 'learning') {
+                    if (q.streak >= l2m) {
+                        q.status = 'correct';
+                    }
+                }
+            }
+
+            saveState();
+        }
+
+        function renderActiveQuizQuestion() {
+            if (!activeQuiz || activeQuiz.questions.length === 0) return;
+
+            const q = activeQuiz.questions[activeQuiz.currentIndex];
+            const total = activeQuiz.questions.length;
+            const idx = activeQuiz.currentIndex;
+
+            activeQuiz.answeredCurrent = false;
+
+            document.getElementById('quiz-mode-badge').textContent = activeQuiz.mode === 'mcq' ? 'MCQ Mode' : 'Flashcards';
+            document.getElementById('quiz-progress-label').textContent = `Question ${idx + 1} of ${total}`;
+            document.getElementById('quiz-score-pill').textContent = `${activeQuiz.correctCount} Correct`;
+            document.getElementById('quiz-progress-bar').style.width = `${Math.round((idx / total) * 100)}%`;
+
+            document.getElementById('quiz-question-meta').textContent = `${q.subjectName} • ${q.chapterName}`;
+            document.getElementById('quiz-question-text').textContent = q.prompt;
+
+            updateActiveFlagButtonUI(q.flagged);
+
+            const activeCard = document.getElementById('quiz-active-card');
+            const mcqBox = document.getElementById('quiz-mcq-options');
+            const fcBox = document.getElementById('quiz-flashcard-box');
+            const feedbackPanel = document.getElementById('quiz-feedback-panel');
+
+            activeCard.classList.remove('animate-success-sweep', 'animate-incorrect-shake', 'border-emerald-500/60', 'border-rose-500/60');
+            activeCard.classList.add('border-slate-800');
+            feedbackPanel.classList.add('hidden');
+            feedbackPanel.classList.remove('animate-success-sweep', 'animate-incorrect-shake');
+
+            if (activeQuiz.mode === 'mcq') {
+                mcqBox.classList.remove('hidden');
+                fcBox.classList.add('hidden');
+
+                const options = shuffleArray(q.choices && q.choices.length > 0 ? q.choices : [q.correctAnswer]);
+                const letters = ['A', 'B', 'C', 'D', 'E'];
+
+                mcqBox.innerHTML = options.map((opt, i) => `
+                    <button type="button" onclick="submitMCQAnswer(this, ${JSON.stringify(opt).replace(/"/g, '&quot;')})" class="mcq-option-btn w-full text-left p-4 rounded-2xl bg-slate-950/80 hover:bg-slate-800/90 border border-slate-800 hover:border-indigo-500/50 transition-all flex items-center gap-3.5 group">
+                        <span class="w-7 h-7 rounded-lg bg-slate-900 border border-slate-700 group-hover:border-indigo-500/60 text-xs font-bold text-slate-300 flex items-center justify-center shrink-0">${letters[i] || i + 1}</span>
+                        <span class="text-sm font-medium text-slate-100">${escapeHTML(opt)}</span>
+                    </button>
+                `).join('');
+            } else {
+                mcqBox.classList.add('hidden');
+                fcBox.classList.remove('hidden');
+                document.getElementById('flashcard-reveal-panel').classList.remove('hidden');
+                document.getElementById('flashcard-answer-panel').classList.add('hidden');
+                document.getElementById('flashcard-answer-text').textContent = q.correctAnswer;
+            }
+        }
+
+        function submitMCQAnswer(btnEl, chosenOption) {
+            if (!activeQuiz || activeQuiz.answeredCurrent) return;
+            activeQuiz.answeredCurrent = true;
+
+            const q = activeQuiz.questions[activeQuiz.currentIndex];
+            const isCorrect = chosenOption === q.correctAnswer;
+            const buttons = document.querySelectorAll('#quiz-mcq-options button');
+
+            buttons.forEach(b => {
+                b.disabled = true;
+                const labelText = b.querySelector('span:last-child')?.textContent || '';
+                if (labelText === q.correctAnswer) {
+                    b.classList.remove('bg-slate-950/80', 'border-slate-800');
+                    b.classList.add('bg-emerald-950/80', 'border-emerald-500', 'text-emerald-100');
+                } else if (b === btnEl && !isCorrect) {
+                    b.classList.remove('bg-slate-950/80', 'border-slate-800');
+                    b.classList.add('bg-rose-950/80', 'border-rose-500', 'text-rose-100');
+                } else {
+                    b.classList.add('opacity-50');
+                }
+            });
+
+            recordSessionResult(q, isCorrect);
+        }
+
+        function revealFlashcardAnswer() {
+            document.getElementById('flashcard-reveal-panel').classList.add('hidden');
+            document.getElementById('flashcard-answer-panel').classList.remove('hidden');
+        }
+
+        function gradeFlashcard(isCorrect) {
+            if (!activeQuiz || activeQuiz.answeredCurrent) return;
+            activeQuiz.answeredCurrent = true;
+            const q = activeQuiz.questions[activeQuiz.currentIndex];
+            document.getElementById('flashcard-answer-panel').classList.add('hidden');
+            recordSessionResult(q, isCorrect);
+        }
+
+        function recordSessionResult(q, isCorrect) {
+            updateQuestionMastery(q, isCorrect);
+
+            const activeCard = document.getElementById('quiz-active-card');
+            const feedbackPanel = document.getElementById('quiz-feedback-panel');
+            const statusEl = document.getElementById('quiz-feedback-status');
+            const explanationEl = document.getElementById('quiz-explanation-text');
+            const nextBtn = document.getElementById('quiz-next-btn');
+
+            if (isCorrect) {
+                activeQuiz.correctCount++;
+                activeCard.classList.remove('border-slate-800');
+                activeCard.classList.add('border-emerald-500/60', 'animate-success-sweep');
+                statusEl.textContent = 'Correct!';
+                statusEl.className = 'text-xs font-extrabold uppercase tracking-wider text-emerald-400';
+            } else {
+                activeQuiz.incorrectQuestions.push(q);
+                activeCard.classList.remove('border-slate-800');
+                activeCard.classList.add('border-rose-500/60', 'animate-incorrect-shake');
+                statusEl.textContent = `Incorrect — Correct Answer: ${q.correctAnswer}`;
+                statusEl.className = 'text-xs font-extrabold uppercase tracking-wider text-rose-400';
+            }
+
+            document.getElementById('quiz-score-pill').textContent = `${activeQuiz.correctCount} Correct`;
+            explanationEl.textContent = q.explanation || 'No explanation provided for this question.';
+            nextBtn.textContent = activeQuiz.currentIndex + 1 >= activeQuiz.questions.length ? 'Finish Session →' : 'Next Question →';
+            feedbackPanel.classList.remove('hidden');
+        }
+
+        function advanceQuizQuestion() {
+            if (!activeQuiz) return;
+            if (activeQuiz.currentIndex + 1 < activeQuiz.questions.length) {
+                activeQuiz.currentIndex++;
+                renderActiveQuizQuestion();
+            } else {
+                showQuizSummary();
+            }
+        }
+
+        function showQuizSummary() {
+            const total = activeQuiz.questions.length;
+            const correct = activeQuiz.correctCount;
+            const missed = total - correct;
+            const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+            document.getElementById('quiz-progress-bar').style.width = '100%';
+            document.getElementById('quiz-active-card').classList.add('hidden');
+            document.getElementById('quiz-summary-card').classList.remove('hidden');
+
+            document.getElementById('summary-score-pct').textContent = `${pct}%`;
+            document.getElementById('summary-correct-count').textContent = correct;
+            document.getElementById('summary-incorrect-count').textContent = missed;
+
+            const retryBtn = document.getElementById('summary-retry-missed-btn');
+            if (activeQuiz.incorrectQuestions.length > 0) {
+                retryBtn.classList.remove('hidden');
+            } else {
+                retryBtn.classList.add('hidden');
+            }
+        }
+
+        function retryMissedQuestions() {
+            if (!activeQuiz || activeQuiz.incorrectQuestions.length === 0) return;
+            const missedPool = shuffleArray(activeQuiz.incorrectQuestions);
+            launchQuizSession(missedPool, activeQuiz.mode);
+        }
+
+        function endQuizEarly() {
+            activeQuiz = null;
+            document.getElementById('nav-quiz').classList.add('hidden');
+            document.getElementById('mob-nav-quiz').classList.add('hidden');
+            switchTab('hub');
+        }
+
+        function toggleActiveQuestionFlag() {
+            if (!activeQuiz) return;
+            const qRef = activeQuiz.questions[activeQuiz.currentIndex];
+            qRef.flagged = !qRef.flagged;
+
+            const sub = getSubjectById(qRef.subjectId);
+            const ch = sub?.chapters.find(c => c.id === qRef.chapterId);
+            const realQ = ch?.questions.find(item => item.id === qRef.id);
+            if (realQ) realQ.flagged = qRef.flagged;
+
+            updateActiveFlagButtonUI(qRef.flagged);
+            saveState();
+        }
+
+        function updateActiveFlagButtonUI(isFlagged) {
+            const btn = document.getElementById('quiz-flag-btn');
+            if (!btn) return;
+            if (isFlagged) {
+                btn.classList.remove('border-slate-800', 'text-slate-400');
+                btn.classList.add('border-amber-500/60', 'bg-amber-950/40', 'text-amber-300');
+            } else {
+                btn.classList.add('border-slate-800', 'text-slate-400');
+                btn.classList.remove('border-amber-500/60', 'bg-amber-950/40', 'text-amber-300');
+            }
+        }
+
+        /* =====================================================================
+           10. JSON BACKUP / RESTORE & GITHUB CROSS-DEVICE SYNC
+           ===================================================================== */
+        function exportBackupJSON() {
+            const blob = new Blob([JSON.stringify(appState, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `studium-backup-${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Backup JSON downloaded.', 'success');
+        }
+
+        function importBackupJSON(event) {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    appState = normalizeState(parsed);
+                    ensureValidSelections();
+                    saveState();
+                    applyCustomLogo();
+                    renderHub();
+                    renderSubjectsManager();
+                    renderImportSelectors();
+                    renderSettingsTab();
+
+                    const totalQ = appState.subjects.reduce(
+                        (sum, s) => sum + s.chapters.reduce((cSum, c) => cSum + c.questions.length, 0),
+                        0
+                    );
+                    showToast(`Restored ${appState.subjects.length} subject(s) & ${totalQ} questions!`, 'success');
+                } catch (err) {
+                    showToast('Invalid backup JSON file.', 'error');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function getGitHubConfig() {
+            return {
+                token: localStorage.getItem(GH_TOKEN_KEY) || '',
+                repo: localStorage.getItem(GH_REPO_KEY) || ''
+            };
+        }
+
+        function updateGitHubStatusIndicator(statusText, isConnected) {
+            const dot = document.getElementById('gh-sync-dot');
+            const badge = document.getElementById('gh-sync-modal-badge');
+            const line = document.getElementById('gh-sync-status-line');
+
+            if (dot) {
+                dot.className = `w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-400' : 'bg-slate-500'}`;
+            }
+            if (badge) {
+                badge.textContent = isConnected ? 'Connected' : 'Local Only';
+                badge.className = isConnected
+                    ? 'text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-700'
+                    : 'text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700';
+            }
+            if (line && statusText) {
+                line.textContent = statusText;
+            }
+        }
+
+        function openGitHubSyncModal() {
+            const { token, repo } = getGitHubConfig();
+            document.getElementById('gh-token-input').value = token;
+            document.getElementById('gh-repo-input').value = repo;
+            updateGitHubStatusIndicator(token && repo ? `Configured for ${repo}` : 'Not connected.', Boolean(token && repo));
+
+            const modal = document.getElementById('gh-sync-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeGitHubSyncModal() {
+            const modal = document.getElementById('gh-sync-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        async function saveGitHubTokenFromModal() {
+            const token = document.getElementById('gh-token-input').value.trim();
+            const repo = document.getElementById('gh-repo-input').value.trim();
+
+            if (!token || !repo) {
+                localStorage.removeItem(GH_TOKEN_KEY);
+                localStorage.removeItem(GH_REPO_KEY);
+                updateGitHubStatusIndicator('Cleared credentials (Local Only).', false);
+                showToast('GitHub sync disabled.', 'info');
+                return;
+            }
+
+            localStorage.setItem(GH_TOKEN_KEY, token);
+            localStorage.setItem(GH_REPO_KEY, repo);
+            updateGitHubStatusIndicator('Connecting...', true);
+            await pullStateFromGitHub(false);
+        }
+
+        async function triggerManualGitHubPull() {
+            await pullStateFromGitHub(false);
+        }
+
+        async function triggerManualGitHubPush() {
+            await pushStateToGitHub(false);
+        }
+
+        async function pullStateFromGitHub(silent = true) {
+            const { token, repo } = getGitHubConfig();
+            if (!token || !repo) return;
+
+            try {
+                const res = await fetch(`https://api.github.com/repos/${repo}/contents/${GH_FILE_PATH}`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        Accept: 'application/vnd.github+json'
+                    }
+                });
+
+                if (res.status === 404) {
+                    updateGitHubStatusIndicator('Remote file not found yet. Pushing local data...', true);
+                    await pushStateToGitHub(silent);
+                    return;
+                }
+
+                if (!res.ok) throw new Error(`GitHub API ${res.status}`);
+
+                const data = await res.json();
+                githubFileSha = data.sha;
+                const decoded = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
+                const remoteState = normalizeState(JSON.parse(decoded));
+
+                if ((remoteState.updatedAt || 0) >= (appState.updatedAt || 0)) {
+                    appState = remoteState;
+                    saveState(false);
+                    applyCustomLogo();
+                    renderHub();
+                }
+
+                updateGitHubStatusIndicator(`Last pulled at ${new Date().toLocaleTimeString()}`, true);
+                if (!silent) showToast('Synced from GitHub!', 'success');
+            } catch (err) {
+                updateGitHubStatusIndicator(`Sync error: ${err.message}`, false);
+                if (!silent) showToast(`GitHub pull failed: ${err.message}`, 'error');
+            }
+        }
+
+        async function pushStateToGitHub(silent = true) {
+            const { token, repo } = getGitHubConfig();
+            if (!token || !repo) return;
+
+            try {
+                if (!githubFileSha) {
+                    const checkRes = await fetch(`https://api.github.com/repos/${repo}/contents/${GH_FILE_PATH}`, {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            Accept: 'application/vnd.github+json'
+                        }
+                    });
+                    if (checkRes.ok) {
+                        const meta = await checkRes.json();
+                        githubFileSha = meta.sha;
+                    }
+                }
+
+                const contentBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(appState, null, 2))));
+                const body = {
+                    message: `Studium sync ${new Date().toISOString()}`,
+                    content: contentBase64
+                };
+                if (githubFileSha) body.sha = githubFileSha;
+
+                const putRes = await fetch(`https://api.github.com/repos/${repo}/contents/${GH_FILE_PATH}`, {
+                    method: 'PUT',
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        Accept: 'application/vnd.github+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (!putRes.ok) throw new Error(`GitHub API ${putRes.status}`);
+                const result = await putRes.json();
+                githubFileSha = result.content?.sha || githubFileSha;
+
+                updateGitHubStatusIndicator(`Last pushed at ${new Date().toLocaleTimeString()}`, true);
+                if (!silent) showToast('Saved to GitHub!', 'success');
+            } catch (err) {
+                updateGitHubStatusIndicator(`Push error: ${err.message}`, false);
+                if (!silent) showToast(`GitHub push failed: ${err.message}`, 'error');
+            }
+        }
+
+        /* =====================================================================
+           11. AMBIENT GEOMETRIC GRID CANVAS & BOOTSTRAP
+           ===================================================================== */
+        function initBackgroundGrid() {
+            const canvas = document.getElementById('studium-bg-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let width = (canvas.width = window.innerWidth);
+            let height = (canvas.height = window.innerHeight);
+
+            window.addEventListener('resize', () => {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            });
+
+            let t = 0;
+            function draw() {
+                ctx.clearRect(0, 0, width, height);
+                const spacing = 48;
+                ctx.strokeStyle = 'rgba(99, 102, 241, 0.06)';
+                ctx.lineWidth = 1;
+
+                for (let x = 0; x <= width + spacing; x += spacing) {
+                    ctx.beginPath();
+                    for (let y = 0; y <= height + spacing; y += spacing) {
+                        const offset = Math.sin((x + y) * 0.008 + t) * 4;
+                        if (y === 0) ctx.moveTo(x + offset, y);
+                        else ctx.lineTo(x + offset, y);
+                    }
+                    ctx.stroke();
+                }
+
+                t += 0.015;
+                requestAnimationFrame(draw);
+            }
+            draw();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            applyCustomLogo();
+            renderHub();
+            initBackgroundGrid();
+
+            const { token, repo } = getGitHubConfig();
+            if (token && repo) {
+                updateGitHubStatusIndicator(`Connected to ${repo}`, true);
+                pullStateFromGitHub(true);
+            }
+        });
+    </script>
+</body>
+</html>
